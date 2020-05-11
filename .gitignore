@@ -1,0 +1,5 @@
+.ccls-cache
+*.img
+*.d
+*.o
+*.elf
