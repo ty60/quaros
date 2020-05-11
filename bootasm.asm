@@ -1,7 +1,7 @@
 bits 16
 
 
-; extern bootc
+extern bootc
 
 
 %define nullentry dq 0
@@ -19,7 +19,7 @@ bits 16
 %endmacro
 
 
-boot:
+bootasm:
     cli
     xor ax, ax
     mov ss, ax
@@ -64,8 +64,8 @@ protected:
     mov ds, eax
     mov es, eax
     mov ss, eax
-    mov esp, boot
-    ; call bootc
+    mov esp, bootasm
+    call bootc
 
 fin:
     hlt
