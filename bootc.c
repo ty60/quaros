@@ -58,7 +58,7 @@ void bootc(void) {
     for (i = 0; i < ehdr->e_phnum; i++) {
         phdr = ELF_PHDR(ehdr, i);
         if (phdr->p_type & PT_LOAD) {
-            read_offset((char *)phdr->p_vaddr, SECT_SIZE + phdr->p_offset, phdr->p_filesz);
+            read_offset((char *)phdr->p_paddr, SECT_SIZE + phdr->p_offset, phdr->p_filesz);
         }
     }
 

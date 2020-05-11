@@ -12,7 +12,7 @@ boot_objs := bootasm.o bootc.o
 boot_ld := bootloader.ld
 boot_elf := bootloader.elf
 
-kernel_objs := start.o
+kernel_objs := start.o main.o paging.o
 kernel_ld := kernel.ld
 kernel_elf := kernel.elf
 
@@ -32,6 +32,9 @@ bootasm.o: bootasm.asm
 
 bootc.o: bootc.c
 	$(CC) $(CFLAGS) -O -c $<
+
+start.o: start.asm
+	nasm -f elf32 $<
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<

@@ -25,7 +25,7 @@ void print(char *msg, int n) {
 }
 
 
-void _start(void) {
+int main(void) {
     initbg();
     print(msg, sizeof(msg));
 }
