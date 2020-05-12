@@ -1,3 +1,6 @@
+#include "lapic.h"
+
+
 #define VRAM 0xb8000
 #define COLOR 0x2a
 
@@ -26,6 +29,8 @@ void print(char *msg, int n) {
 
 
 int main(void) {
+    initlapic();
+    disablepic();
     initbg();
     print(msg, sizeof(msg));
 }
