@@ -1,4 +1,4 @@
-#include "int.h"
+#include "types.h"
 #include "asm.h"
 #include "elf.h"
 
