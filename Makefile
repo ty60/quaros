@@ -2,7 +2,8 @@ CC := gcc
 LD := ld
 QEMU := qemu-system-i386
 
-CFLAGS := -m32 -Wall -Wextra -fno-stack-protector -fno-pic -fno-builtin -fno-strict-aliasing -MD -fno-omit-frame-pointer -fno-pie -no-pie -nostdinc -nostdlib -masm=intel -Wl,--build-id=none
+# -O (optimization) option is required to inline functions
+CFLAGS := -m32 -Wall -Wextra -fno-stack-protector -fno-pic -fno-builtin -fno-strict-aliasing -MD -fno-omit-frame-pointer -fno-pie -no-pie -nostdinc -nostdlib -masm=intel -Wl,--build-id=none -O
 LDFLAGS := -m elf_i386
 
 
@@ -12,7 +13,7 @@ boot_objs := bootasm.o bootc.o
 boot_ld := bootloader.ld
 boot_elf := bootloader.elf
 
-kernel_objs := start.o main.o paging.o
+kernel_objs := start.o main.o paging.o util.o
 kernel_ld := kernel.ld
 kernel_elf := kernel.elf
 
@@ -29,9 +30,6 @@ $(kernel_elf): $(kernel_objs)
 
 bootasm.o: bootasm.asm
 	nasm -f elf32 $<
-
-bootc.o: bootc.c
-	$(CC) $(CFLAGS) -O -c $<
 
 start.o: start.asm
 	nasm -f elf32 $<

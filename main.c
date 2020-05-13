@@ -8,11 +8,6 @@ extern char kernel_end[];
 
 
 char msg[] = "Hello world!";
-char *msgs[] = {
-    "Hello world!",
-    "Hello kalloc!",
-    "Hello kfree!!!",
-};
 
 
 void initbg(void) {
@@ -52,22 +47,23 @@ int strlen(const char *s) {
 }
 
 
+// This function HAS TO BE INLINED.
+// Otherwise the new esp will be forgotten,
+// when the old stack is restored with `leave`.
+static inline void init_kstack(char *kstack) {
+    __asm__ volatile (
+            "mov esp, %0"
+            :
+            : "r" (kstack));
+}
+
+
 int main(void) {
-    int i;
-    char *dyn_mem[3];
+    register_free_mem(kernel_end, (char *)(KERN_LINK & ~(0x00ffffff)) + (1024 * 1024 * 4));
+    init_kernel_memory();
+    init_kstack(kmalloc());
+
     initbg();
-    register_free_mem(kernel_end, (char *)(KERN_BASE & ~(0x00ffffff)) + (1024 * 1024 * 4));
+    print(msg, sizeof(msg));
 
-    for (i = 0; i < 3; i++) {
-        dyn_mem[i] = kmalloc();
-        strcpy(dyn_mem[i], msgs[i]);
-    }
-
-    for (i = 0; i < 3; i++) {
-        print(dyn_mem[i], strlen(dyn_mem[i]));
-    }
-
-    for (i = 0; i < 3; i++) {
-        kfree(dyn_mem[i]);
-    }
 }

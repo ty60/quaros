@@ -6,7 +6,9 @@ SECTIONS {
         *(.text)
     }
     .rodata : {
+        *(.strings)
         *(.rodata)
+        *(.rodata.*)
     }
     .data : {
         *(.data)

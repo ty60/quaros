@@ -2,6 +2,7 @@
 #define ASM_H
 
 #include "types.h"
+#include "memory.h"
 
 static inline void outb(uint16_t port, uint8_t x) {
     __asm__ volatile (
@@ -31,6 +32,15 @@ static inline void insd(uint16_t port, uint8_t *dst, uint32_t cnt) {
             : "d" (port), "0" (dst), "1" (cnt)
             : "cc", "memory"
             );
+}
+
+
+static inline void lcr3(pde_t *pde) {
+    uint32_t pa = VIRT_TO_PHYS((uint32_t)pde);
+    __asm__ volatile (
+            "mov cr3, %0\n\t"
+            :
+            : "a" (pa));
 }
 
 

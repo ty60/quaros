@@ -3,9 +3,12 @@
 
 #include "types.h"
 
-#define KERN_BASE 0xc0100000
-#define KERN_BASE_PHYS 0x00100000
-#define VIRT_PHYS_OFFSET (KERN_BASE - KERN_BASE_PHYS)
+#define KERN_BASE 0xc0000000
+#define KERN_LINK 0xc0100000
+#define KERN_BASE_PHYS 0x00000000
+#define KERN_LINK_PHYS 0x00100000
+#define VIRT_TO_PHYS(va) (((uint32_t)(va)) - KERN_BASE)
+#define PHYS_TO_VIRT(pa) (((uint32_t)(pa)) + KERN_BASE)
 
 typedef uint32_t pde_t;
 typedef uint32_t pte_t;
@@ -27,12 +30,12 @@ typedef uint32_t pte_t;
 #define PTE_P  PDE_P
 #define PTE_RW PDE_RW
 #define PTE_US PDE_US
-#define PTE_PS PDE_PS
 
 
 void kfree(void *ptr);
 void *kmalloc(void);
 void register_free_mem(char *start, char *end);
+void init_kernel_memory(void);
 
 
 #endif
