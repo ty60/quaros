@@ -44,4 +44,13 @@ static inline void lcr3(pde_t *pde) {
 }
 
 
+static inline void lgdt(struct gdt_desc *gdtr_p) {
+    __asm__ volatile (
+            "lgdt [%0]\n\t"
+            :
+            : "r" (gdtr_p)
+            );
+}
+
+
 #endif

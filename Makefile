@@ -13,7 +13,7 @@ boot_objs := bootasm.o bootc.o
 boot_ld := bootloader.ld
 boot_elf := bootloader.elf
 
-kernel_objs := start.o main.o paging.o util.o
+kernel_objs := start.o main.o memory.o util.o segment.o
 kernel_ld := kernel.ld
 kernel_elf := kernel.elf
 
@@ -32,6 +32,9 @@ bootasm.o: bootasm.asm
 	nasm -f elf32 $<
 
 start.o: start.asm
+	nasm -f elf32 $<
+
+segment.o: segment.asm
 	nasm -f elf32 $<
 
 %.o: %.c

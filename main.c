@@ -62,6 +62,7 @@ int main(void) {
     register_free_mem(kernel_end, (char *)(KERN_LINK & ~(0x00ffffff)) + (1024 * 1024 * 4));
     init_kernel_memory();
     init_kstack(kmalloc());
+    init_segmentation();
 
     initbg();
     print(msg, sizeof(msg));

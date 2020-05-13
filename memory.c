@@ -90,18 +90,14 @@ void map_memory(pde_t *pgdir, uint32_t vaddr, uint32_t paddr, uint32_t size, uin
 }
 
 
-struct map_info {
-    uint32_t va;
-    uint32_t pa;
-    uint32_t size;
-    uint32_t perm;
-};
 // It is more secure to map the kernel more fine grained
 // with detialed permission management.
 struct map_info kernel_map[] = {
     {0, 0, (1 << 20) * 4, PTE_RW}, // Identity map for convenience [0x0:4MB) -> [0x0:4MB)
-    {KERN_BASE, KERN_BASE_PHYS, 0 - KERN_BASE, PTE_RW},
+    {KERN_BASE, KERN_BASE_PHYS, 0 - KERN_BASE, PTE_RW}, // Map kernel
 };
+
+
 pde_t *map_kernel(void) {
     uint32_t i;
     pde_t *pgdir;
@@ -122,4 +118,58 @@ pde_t *kpgdir = NULL;
 void init_kernel_memory(void) {
     kpgdir = map_kernel();
     lcr3(kpgdir);
+}
+
+
+struct segment_desc gdt[NUM_SEGMENTS];
+
+void set_segment_desc(struct segment_desc *desc, uint32_t base, uint32_t limit, uint8_t type, uint32_t dpl) {
+    desc->limit0 = limit & 0xffff;
+    desc->base0 = base & 0xffff;
+    desc->base1 = (base >> 16) & 0xff;
+    desc->type = type;
+    desc->s = 1;
+    desc->dpl = (dpl & 0x3);
+    desc->p = 1;
+    desc->limit = (limit >> 16) & 0xff;
+    desc->avl = 0;
+    desc->l = 0;
+    desc->d = 1;
+    desc->g = 1;
+}
+
+
+struct gdt_desc gdtr;
+extern void reload_segment_regs(void);
+
+void init_segmentation(void) {
+    memset(&gdt[NULL_SEG], 0, sizeof(struct segment_desc));
+    set_segment_desc(&gdt[KERN_DATA_SEG],
+                     0x0,
+                     0xfffff,
+                     SEG_TYPE_RW,
+                     DPL_KERN);
+    set_segment_desc(&gdt[KERN_CODE_SEG],
+                     0x0,
+                     0xfffff,
+                     // (SEG_TYPE_RW | SEG_TYPE_EX),
+                     0 | 2 | 8,
+                     DPL_KERN);
+    set_segment_desc(&gdt[USER_DATA_SEG],
+                     0x0,
+                     0xfffff,
+                     SEG_TYPE_RW,
+                     DPL_USER);
+    set_segment_desc(&gdt[USER_CODE_SEG],
+                     0x0,
+                     0xfffff,
+                     SEG_TYPE_RW | SEG_TYPE_EX,
+                     DPL_USER);
+
+    gdtr.size = sizeof(gdt) - 1;
+    gdtr.offset0 = (uint32_t)gdt & 0xffff;
+    gdtr.offset1 = ((uint32_t)gdt >> 16) & 0xffff;
+    lgdt(&gdtr);
+
+    reload_segment_regs();
 }

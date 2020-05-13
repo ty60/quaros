@@ -32,10 +32,55 @@ typedef uint32_t pte_t;
 #define PTE_US PDE_US
 
 
+#define NUM_SEGMENTS 5
+#define SEG_TYPE_RW (1 << 1)
+#define SEG_TYPE_EX (1 << 3)
+#define SEG_FLAG_GRAN (1 << 2)
+
+#define NULL_SEG (0)
+#define KERN_DATA_SEG (1)
+#define KERN_CODE_SEG (2)
+#define USER_DATA_SEG (3)
+#define USER_CODE_SEG (4)
+
+#define DPL_KERN (0)
+#define DPL_USER (3)
+
+
+struct map_info {
+    uint32_t va;
+    uint32_t pa;
+    uint32_t size;
+    uint32_t perm;
+};
+
+
+struct segment_desc {
+    uint16_t limit0;
+    uint16_t base0;
+    // uint8_t base1;
+    // uint8_t type : 4, s : 1, dpl : 2, p : 1;
+    uint16_t base1: 8, type: 4, s: 1, dpl: 2, p: 1;
+    uint16_t limit: 4, avl: 1, l: 1, d: 1, g: 1, base2: 8;
+    // uint8_t limit1 : 4, avl : 1, l : 1, d : 1, g : 1;
+    // uint8_t base2;
+} __attribute__ ((packed));
+// packed attribute
+// https://gcc.gnu.org/onlinedocs/gcc-3.3/gcc/Type-Attributes.html
+// > specified that the minimum required memory be used to represent the type.
+
+struct gdt_desc {
+    uint16_t size;
+    uint16_t offset0;
+    uint16_t offset1;
+} __attribute__((packed));
+
+
 void kfree(void *ptr);
 void *kmalloc(void);
 void register_free_mem(char *start, char *end);
 void init_kernel_memory(void);
+void init_segmentation(void);
 
 
 #endif
