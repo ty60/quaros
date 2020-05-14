@@ -2,6 +2,7 @@
 #include "types.h"
 #include "memory.h"
 #include "asm.h"
+#include "string.h"
 
 
 __attribute__((__aligned__(PGSIZE)))

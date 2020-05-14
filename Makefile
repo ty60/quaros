@@ -13,7 +13,7 @@ boot_objs := bootasm.o bootc.o
 boot_ld := bootloader.ld
 boot_elf := bootloader.elf
 
-kernel_objs := start.o main.o memory.o util.o segment.o lapic.o
+kernel_objs := start.o main.o memory.o util.o segment.o lapic.o uart.o io.o string.o
 kernel_ld := kernel.ld
 kernel_elf := kernel.elf
 
@@ -41,10 +41,13 @@ segment.o: segment.asm
 	$(CC) $(CFLAGS) -c $<
 
 run: $(image)
-	$(QEMU) -drive 'file=$(image),format=raw'
+	$(QEMU) -drive 'file=$(image),format=raw' -serial mon:stdio -nographic
 
 debug: $(image)
-	$(QEMU) -drive 'file=$(image),format=raw' -monitor stdio -s -S
+	$(QEMU) -drive 'file=$(image),format=raw' -serial mon:stdio -s -S -monitor telnet::1235,server,nowait -nographic
+
+monitor:
+	telnet localhost 1235
 
 gdb:
 	gdb -q -x cmd.gdb

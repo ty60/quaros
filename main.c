@@ -1,51 +1,12 @@
 #include "lapic.h"
 #include "memory.h"
+#include "io.h"
+#include "uart.h"
 
 
 extern char kernel_end[];
 
-#define VRAM 0xb8000
-#define COLOR 0x2a
-
-
 char msg[] = "Hello world!";
-
-
-void initbg(void) {
-    int i;
-    short *now = (short *)VRAM;
-    for (i = 0; i < 2000; i++) {
-        *now = COLOR << 8;
-        now++;
-    }
-}
-
-
-void print(char *msg, int n) {
-    int i;
-    char *now = (char *)VRAM;
-    for (i = 0; i < n; i++) {
-        *now = msg[i];
-        now += 2;
-    }
-}
-
-
-char *strcpy(char *dest, const char *src) {
-    int i = 0;
-    while (src[i]) {
-        *dest++ = src[i++];
-    }
-    return dest;
-}
-
-
-int strlen(const char *s) {
-    int ret;
-    for (ret = 0; s[ret] != '\0'; ret++)
-        ;
-    return ret;
-}
 
 
 // This function HAS TO BE INLINED.
@@ -71,6 +32,6 @@ int main(void) {
     initlapic();
     disablepic();
 
-    initbg();
-    print(msg, sizeof(msg));
+    init_uart();
+    puts(msg);
 }
