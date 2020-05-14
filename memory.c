@@ -94,7 +94,8 @@ void map_memory(pde_t *pgdir, uint32_t vaddr, uint32_t paddr, uint32_t size, uin
 // with detialed permission management.
 struct map_info kernel_map[] = {
     {0, 0, (1 << 20) * 4, PTE_RW}, // Identity map for convenience [0x0:4MB) -> [0x0:4MB)
-    {KERN_BASE, KERN_BASE_PHYS, 0 - KERN_BASE, PTE_RW}, // Map kernel
+    {KERN_BASE, KERN_BASE_PHYS, MMDEV_BASE - KERN_BASE, PTE_RW}, // Map kernel
+    {MMDEV_BASE, MMDEV_BASE, 0 - MMDEV_BASE, PTE_RW}, // Identity map for memory mapped dev
 };
 
 

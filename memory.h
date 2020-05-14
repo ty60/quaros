@@ -7,6 +7,7 @@
 #define KERN_LINK 0xc0100000
 #define KERN_BASE_PHYS 0x00000000
 #define KERN_LINK_PHYS 0x00100000
+#define MMDEV_BASE 0xfe000000 // Memory Mapped IO (eg. apic)
 #define VIRT_TO_PHYS(va) (((uint32_t)(va)) - KERN_BASE)
 #define PHYS_TO_VIRT(pa) (((uint32_t)(pa)) + KERN_BASE)
 
