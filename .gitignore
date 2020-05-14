@@ -1,6 +1,5 @@
 .ccls-cache
 *.img
-*.d
 *.o
 *.elf
 compile_commands.json

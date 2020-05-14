@@ -1,4 +1,4 @@
-#include "int.h"
+#include "types.h"
 #include "trap.h"
 #include "lapic.h"
 

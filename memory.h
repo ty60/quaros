@@ -77,6 +77,7 @@ void *kmalloc(void);
 void register_free_mem(char *start, char *end);
 void init_kernel_memory(void);
 void init_segmentation(void);
+void zero_out_bss(void);
 
 
 #endif

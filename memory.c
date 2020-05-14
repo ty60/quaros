@@ -121,6 +121,13 @@ void init_kernel_memory(void) {
 }
 
 
+// TODO: Zero out bss at bootloader using section info.
+extern char bss_start[];
+extern char bss_end[];
+void zero_out_bss(void) {
+    memset(bss_start, 0, bss_end - bss_start);
+}
+
 struct segment_desc gdt[NUM_SEGMENTS];
 
 void set_segment_desc(struct segment_desc *desc, uint32_t base, uint32_t limit, uint8_t type, uint32_t dpl) {
