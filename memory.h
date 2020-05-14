@@ -58,12 +58,8 @@ struct map_info {
 struct segment_desc {
     uint16_t limit0;
     uint16_t base0;
-    // uint8_t base1;
-    // uint8_t type : 4, s : 1, dpl : 2, p : 1;
     uint16_t base1: 8, type: 4, s: 1, dpl: 2, p: 1;
     uint16_t limit: 4, avl: 1, l: 1, d: 1, g: 1, base2: 8;
-    // uint8_t limit1 : 4, avl : 1, l : 1, d : 1, g : 1;
-    // uint8_t base2;
 } __attribute__ ((packed));
 // packed attribute
 // https://gcc.gnu.org/onlinedocs/gcc-3.3/gcc/Type-Attributes.html

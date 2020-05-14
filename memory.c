@@ -152,8 +152,7 @@ void init_segmentation(void) {
     set_segment_desc(&gdt[KERN_CODE_SEG],
                      0x0,
                      0xfffff,
-                     // (SEG_TYPE_RW | SEG_TYPE_EX),
-                     0 | 2 | 8,
+                     (SEG_TYPE_RW | SEG_TYPE_EX),
                      DPL_KERN);
     set_segment_desc(&gdt[USER_DATA_SEG],
                      0x0,
