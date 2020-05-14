@@ -1,7 +1,7 @@
 #ifndef ELF_H
 #define ELF_H
 
-#include "int.h"
+#include "types.h"
 
 
 typedef uint32_t Elf32_Addr;

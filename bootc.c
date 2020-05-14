@@ -1,9 +1,9 @@
-#include "int.h"
+#include "types.h"
 #include "asm.h"
 #include "elf.h"
 
 
-#define KERN_BASE_PHYS 0x00100000
+#define KERN_LINK_PHYS 0x00100000
 
 
 #define SECT_SIZE 512
@@ -52,7 +52,7 @@ void bootc(void) {
     Elf32_Ehdr *ehdr;
     Elf32_Phdr *phdr;
 
-    ehdr = (Elf32_Ehdr *)KERN_BASE_PHYS;
+    ehdr = (Elf32_Ehdr *)KERN_LINK_PHYS;
     read_offset((char *)ehdr, SECT_SIZE, SECT_SIZE);
 
     for (i = 0; i < ehdr->e_phnum; i++) {

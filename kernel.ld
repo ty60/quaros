@@ -6,7 +6,9 @@ SECTIONS {
         *(.text)
     }
     .rodata : {
+        *(.strings)
         *(.rodata)
+        *(.rodata.*)
     }
     .data : {
         *(.data)
@@ -14,6 +16,7 @@ SECTIONS {
     .bss : {
         *(.bss)
     }
+    PROVIDE(kernel_end = .);
 
     /DISCARD/ : {
         *(.eh_frame .note.gnu.build-id)
