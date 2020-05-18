@@ -6,7 +6,7 @@
 #define IRQ_ERR 8
 
 void eoi(void);
-void initlapic(void);
-void disablepic(void);
+void init_lapic(void);
+void disable_pic(void);
 
 #endif

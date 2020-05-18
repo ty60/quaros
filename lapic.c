@@ -41,7 +41,7 @@ void eoi(void) {
 }
 
 
-void initlapic(void) {
+void init_lapic(void) {
     write_lapic(LA_ID, 0);
 
 
@@ -69,7 +69,7 @@ void initlapic(void) {
 }
 
 
-void disablepic(void) {
+void disable_pic(void) {
     __asm__ volatile (
             "mov al, 0xff\n\t"
             "out 0xa1, al\n\t"

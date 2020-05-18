@@ -7,8 +7,6 @@
 
 extern char kernel_end[];
 
-char msg[] = "Hello world!";
-
 
 // This function HAS TO BE INLINED.
 // Otherwise the new esp will be forgotten,
@@ -22,18 +20,26 @@ static inline void init_kstack(char *kstack) {
 
 
 int main(void) {
+    init_uart();
+    puts("Boot quaros");
+
+    puts("Setup kmalloc");
     register_free_mem(kernel_end, (char *)(KERN_LINK & ~(0x00ffffff)) + (1024 * 1024 * 4));
     init_kernel_memory();
     init_kstack(kmalloc());
 
+    puts("Fill bss with zero");
     zero_out_bss();
 
+    puts("Initialize segmentation");
     init_segmentation();
 
-    initlapic();
-    disablepic();
+    puts("Initialize lapic");
+    puts("Configure timer");
+    init_lapic();
+    puts("Disable pic");
+    disable_pic();
+    puts("Initialize ioapic");
     init_ioapic();
 
-    init_uart();
-    puts(msg);
 }
