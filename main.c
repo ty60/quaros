@@ -1,7 +1,8 @@
-#include "lapic.h"
 #include "memory.h"
 #include "io.h"
 #include "uart.h"
+#include "lapic.h"
+#include "ioapic.h"
 
 
 extern char kernel_end[];
@@ -31,6 +32,7 @@ int main(void) {
 
     initlapic();
     disablepic();
+    init_ioapic();
 
     init_uart();
     puts(msg);

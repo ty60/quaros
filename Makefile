@@ -13,7 +13,7 @@ boot_objs := bootasm.o bootc.o
 boot_ld := bootloader.ld
 boot_elf := bootloader.elf
 
-kernel_objs := start.o main.o memory.o util.o segment.o lapic.o uart.o io.o string.o
+kernel_objs := start.o main.o memory.o util.o segment.o lapic.o uart.o io.o string.o ioapic.o
 kernel_ld := kernel.ld
 kernel_elf := kernel.elf
 
