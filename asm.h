@@ -3,7 +3,7 @@
 
 #include "types.h"
 #include "memory.h"
-#include "trap.h"
+#include "interrupt.h"
 
 static inline void outb(uint16_t port, uint8_t x) {
     __asm__ volatile (

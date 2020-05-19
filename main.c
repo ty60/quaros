@@ -3,7 +3,7 @@
 #include "uart.h"
 #include "lapic.h"
 #include "ioapic.h"
-#include "trap.h"
+#include "interrupt.h"
 
 
 extern char kernel_end[];

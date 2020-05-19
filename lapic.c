@@ -1,5 +1,5 @@
 #include "types.h"
-#include "trap.h"
+#include "interrupt.h"
 #include "lapic.h"
 
 

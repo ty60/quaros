@@ -1,6 +1,6 @@
 #include "types.h"
 #include "util.h"
-#include "trap.h"
+#include "interrupt.h"
 
 
 #define IOAPIC 0xfec00000

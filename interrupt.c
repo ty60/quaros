@@ -1,4 +1,4 @@
-#include "trap.h"
+#include "interrupt.h"
 #include "types.h"
 #include "util.h"
 #include "memory.h"

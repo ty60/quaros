@@ -1,5 +1,5 @@
-#ifndef TRAP_H
-#define TRAP_H
+#ifndef INTERRUPT_H
+#define INTERRUPT_H
 
 #include "types.h"
 
