@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "memory.h"
+#include "trap.h"
 
 static inline void outb(uint16_t port, uint8_t x) {
     __asm__ volatile (
@@ -49,6 +50,29 @@ static inline void lgdt(struct gdt_desc *gdtr_p) {
             "lgdt [%0]\n\t"
             :
             : "r" (gdtr_p)
+            );
+}
+
+
+static inline void lidt(struct idt_desc *idtr_p) {
+    __asm__ volatile (
+            "lidt [%0]\n\t"
+            :
+            : "r" (idtr_p)
+            );
+}
+
+
+static inline void sti(void) {
+    __asm__ volatile (
+            "sti\n\t"
+            );
+}
+
+
+static inline void cli(void) {
+    __asm__ volatile (
+            "cli\n\t"
             );
 }
 

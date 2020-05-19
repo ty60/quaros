@@ -3,6 +3,7 @@
 #include "uart.h"
 #include "lapic.h"
 #include "ioapic.h"
+#include "trap.h"
 
 
 extern char kernel_end[];
@@ -16,6 +17,12 @@ static inline void init_kstack(char *kstack) {
             "mov esp, %0"
             :
             : "r" (kstack));
+}
+
+
+void bored(void) {
+    while (1) {
+    }
 }
 
 
@@ -42,4 +49,9 @@ int main(void) {
     puts("Initialize ioapic");
     init_ioapic();
 
+    puts("Initialize interrupt");
+    init_interrupt();
+
+    puts("I'm bored");
+    bored();
 }

@@ -13,7 +13,7 @@ boot_objs := bootasm.o bootc.o
 boot_ld := bootloader.ld
 boot_elf := bootloader.elf
 
-kernel_objs := start.o main.o memory.o util.o segment.o lapic.o uart.o io.o string.o ioapic.o
+kernel_objs := start.o main.o memory.o util.o segment.o lapic.o uart.o io.o string.o ioapic.o vectors.o trap.o
 kernel_ld := kernel.ld
 kernel_elf := kernel.elf
 
@@ -37,6 +37,10 @@ start.o: start.asm
 segment.o: segment.asm
 	nasm -f elf32 $<
 
+vectors.o: gen_vectors.py
+	python3 gen_vectors.py
+	nasm -f elf32 vectors.asm
+
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
 
@@ -53,6 +57,6 @@ gdb:
 	gdb -q -x cmd.gdb
 
 clean:
-	rm -f $(image) $(boot_elf) $(boot_objs) $(kernel_objs) $(kernel_elf)
+	rm -f $(image) $(boot_elf) $(boot_objs) $(kernel_objs) $(kernel_elf) vectors.asm
 
 -include *.d
