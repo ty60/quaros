@@ -24,6 +24,11 @@ SECTIONS {
         *(.bss)
     }
     PROVIDE(bss_end = .);
+    PROVIDE(fsar_start = .);
+    .fsar : {
+        *(.fsar)
+    }
+    PROVIDE(fsar_end = .);
     PROVIDE(kernel_end = .);
 
     /DISCARD/ : {

@@ -50,7 +50,7 @@ void trampoline(struct int_regs *regs) {
     int irq = regs->vector_num & 0xff;
     if (irq == T_IRQ_BASE + IRQ_TIMER) {
         ticks++;
-        puts("timer");
+        // puts("timer");
         eoi();
     } else if (irq == T_IRQ_BASE + IRQ_SPURIOUS) {
         eoi();

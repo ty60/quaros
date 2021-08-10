@@ -16,3 +16,25 @@ int puts(const char *s) {
     putchar('\n');
     return 1;
 }
+
+
+int printnum(int x) {
+    if (x == 0) {
+        putchar('0');
+        return 1;
+    }
+
+    int num_digits = 0;
+    char tmp[11];
+    while (x > 0) {
+        int t = x % 10;
+        tmp[num_digits++] = '0' + (char)t;
+        x /= 10;
+    }
+
+    int i;
+    for (i = num_digits - 1; i >= 0; i--) {
+        putchar(tmp[i]);
+    }
+    return 1;
+}

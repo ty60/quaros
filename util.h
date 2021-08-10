@@ -4,5 +4,6 @@
 #include "types.h"
 
 void panic(const char *msg);
+int atoi(const char *str);
 
 #endif

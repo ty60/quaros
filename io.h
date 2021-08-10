@@ -3,5 +3,6 @@
 
 int putchar(int c);
 int puts(const char *s);
+int printnum(int x);
 
 #endif

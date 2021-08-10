@@ -4,6 +4,7 @@
 #include "lapic.h"
 #include "ioapic.h"
 #include "interrupt.h"
+#include "fs.h"
 
 
 extern char kernel_end[];
@@ -26,8 +27,18 @@ void bored(void) {
 }
 
 
+void show_banner(void) {
+    struct file *banner_f = get_file("banner.txt");
+    int i;
+    for (i = 0; i < (int)banner_f->size; i++) {
+        putchar(banner_f->data[i]);
+    }
+}
+
+
 int main(void) {
     init_uart();
+    puts("");
     puts("Boot quaros");
 
     puts("Setup kmalloc");
@@ -51,6 +62,12 @@ int main(void) {
 
     puts("Initialize interrupt");
     init_interrupt();
+
+    puts("Initialize file system");
+    init_fs();
+
+    puts("Welcome to...");
+    show_banner();
 
     puts("I'm bored");
     bored();
