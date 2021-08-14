@@ -17,8 +17,10 @@ kernel_objs := start.o main.o memory.o util.o segment.o lapic.o uart.o io.o stri
 kernel_ld := kernel.ld
 kernel_elf := kernel.elf
 
-user_files := init banner.txt
+uprog_src := $(wildcard user/*.c) banner.txt
 fs := fs.elf
+
+all: $(image)
 
 $(image): $(boot_elf) $(kernel_elf)
 	objcopy -O binary -S -j .text -j .sign $(boot_elf) $(image)
@@ -31,7 +33,8 @@ $(kernel_elf): $(kernel_objs) $(fs)
 	$(CC) $(CFLAGS) -T $(kernel_ld) -o $@ $^
 
 $(fs): $(user_files)
-	ar -r fs.a $^
+	make -C ./user
+	ar -r fs.a ./user/bin/* ./banner.txt
 	objcopy -I binary -O elf32-i386 -B i386 --rename-section .data=.fsar fs.a $@
 
 bootasm.o: bootasm.asm
@@ -70,5 +73,6 @@ gdb:
 
 clean:
 	rm -f $(image) $(boot_elf) $(boot_objs) $(kernel_objs) $(kernel_elf) vectors.asm $(fs) fs.a
+	make -C ./user clean
 
 -include *.d

@@ -177,7 +177,7 @@ void memcpy_to_another_space(pde_t *pgdir, void *dest, const void *src, size_t n
     size_t i;
     for (i = 0; i < num_pages; i++, n -= PGSIZE) {
         pte_t *pte_p = walk_pgdir(pgdir, (uint32_t)dest + i * PGSIZE);
-        uint32_t dest_tgt_va = PHYS_TO_VIRT(*pte_p & (~0xfff));
+        uint32_t dest_tgt_va = PHYS_TO_VIRT(*pte_p & (~0xfff)) + ((uint32_t)dest % PGSIZE);
         memcpy((void *)dest_tgt_va, src, n % PGSIZE);
     }
 }
@@ -246,7 +246,7 @@ void init_segmentation(void) {
     set_segment_desc(&gdt[USER_CODE_SEG],
                      0x0,
                      0xffffffff,
-                     SEG_TYPE_RW | SEG_TYPE_EX,
+                     (SEG_TYPE_RW | SEG_TYPE_EX),
                      DPL_USER);
     set_ts_segment_desc(&gdt[TSS_SEG],
                         (uint32_t)&task_state,

@@ -77,7 +77,16 @@ int load_elf(struct task_struct *task, Elf32_Ehdr *ehdr) {
 
     for (i = 0; i < ehdr->e_phnum; i++) {
         phdr = ELF_PHDR(ehdr, i);
-        if (phdr->p_type & PT_LOAD) {
+        if (phdr->p_type == PT_LOAD) {
+            /*
+            print("p_type: ");
+            printnum(phdr->p_type);
+            print("\np_vaddr: ");
+            printnum(phdr->p_vaddr);
+            print("\np_memsz: ");
+            printnum(phdr->p_memsz);
+            puts("");
+            */
             alloc_map_memory(task->pgdir,
                              phdr->p_vaddr,
                              phdr->p_memsz,
@@ -115,6 +124,7 @@ struct task_struct *alloc_task(const char *path) {
     tp->kstack_top += PGSIZE;
 
     tp->pgdir = map_kernel();
+
     struct file *fp = get_file(path);
     if (!fp) {
         puts("Cannot find specified file");
@@ -133,14 +143,17 @@ struct task_struct *alloc_task(const char *path) {
     struct int_regs *int_regs_p;
     int_regs_p = (struct int_regs *)(tp->kstack_top - sizeof(struct int_regs));
     memset(int_regs_p, 0, sizeof(struct int_regs));
-    int_regs_p->ds = (USER_DATA_SEG << 3);
-    int_regs_p->es = (USER_DATA_SEG << 3);
-    // int_regs_p->eip = (uint32_t)switch_success; // TODO: Should be entry point of ELF?
+    // bits [0, 1] of ds, es, ss encodes priv required to access these segments.
+    // Allow user level priv to access, by setting DPL_USER.
+    int_regs_p->ds = (USER_DATA_SEG << 3) | DPL_USER;
+    int_regs_p->es = (USER_DATA_SEG << 3) | DPL_USER;
     int_regs_p->eip = ehdr->e_entry;
-    int_regs_p->cs = (USER_CODE_SEG << 3);
+    // bits [0, 1] of cs encodes the CPL (current privilege level).
+    // Set to user level privilege.
+    int_regs_p->cs = (USER_CODE_SEG << 3) | DPL_USER;
     int_regs_p->eflags = FL_IF;
     int_regs_p->esp = PGSIZE; // user space stack
-    int_regs_p->ss = (USER_DATA_SEG << 3);
+    int_regs_p->ss = (USER_DATA_SEG << 3) | DPL_USER;
 
     // Setup dummy context frame in order to return to ret_to_int_site
     // and consume the dummy int_regs frame, after switching to this

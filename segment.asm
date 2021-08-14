@@ -6,6 +6,7 @@ bits 32
 %define KERN_CODE_SEG (2)
 %define USER_DATA_SEG (3)
 %define USER_CODE_SEG (4)
+%define TSS_SEG (5)
 
 
 global reload_segment_regs
@@ -23,5 +24,7 @@ reload_cs:
     mov ds, ax
     mov es, ax
     mov ss, ax
+    mov ax, TSS_SEG << 3
+    ltr ax
     leave
     ret
