@@ -8,11 +8,17 @@ int putchar(int c) {
 }
 
 
-int puts(const char *s) {
+int print(const char *s) {
     unsigned int i;
     for (i = 0; i < strlen(s); i++) {
         putchar(s[i]);
     }
+    return 1;
+}
+
+
+int puts(const char *s) {
+    print(s);
     putchar('\n');
     return 1;
 }

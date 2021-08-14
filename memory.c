@@ -3,6 +3,9 @@
 #include "memory.h"
 #include "asm.h"
 #include "string.h"
+#include "fs.h"
+#include "proc.h"
+#include "io.h"
 
 
 __attribute__((__aligned__(PGSIZE)))
@@ -25,6 +28,9 @@ void kfree(void *ptr) {
     } else {
         ((free_node *)(ptr))->next = free_pages;
     }
+    if (((uint32_t) ptr & 0xfff) != 0) {
+        panic("kmalloc: page not aligned (kfree)");
+    }
     free_pages = ptr;
 }
 
@@ -34,6 +40,9 @@ void *kmalloc(void) {
     if (!ret) {
         panic("kmalloc: no memory to allocate");
     }
+    if (((uint32_t)ret & 0xfff) != 0) {
+        panic("kmalloc: page not aligned (kmalloc)");
+    }
     free_pages = free_pages->next;
     return ret;
 }
@@ -41,6 +50,9 @@ void *kmalloc(void) {
 
 void register_free_mem(char *start, char *end) {
     char *now;
+    if (start >= end) {
+        panic("Illegal free memory registeration");
+    }
     for (now = PG_ROUNDUP(start); now < PG_ROUNDDOWN(end); now += PGSIZE) {
         kfree(now);
     }
@@ -82,8 +94,10 @@ void map_memory(pde_t *pgdir, uint32_t vaddr, uint32_t paddr, uint32_t size, uin
     if (size == 0) {
         panic("map_memory: map 0 bytes");
         return;
-    } else {
+    } else if (size % PGSIZE == 0) {
         num_pages = size / PGSIZE;
+    } else {
+        num_pages = size / PGSIZE + 1;
     }
     for (i = 0; i < num_pages; i++) {
         map_page(pgdir, vaddr + i * PGSIZE, paddr + i * PGSIZE, perm);
@@ -123,6 +137,19 @@ void init_kernel_memory(void) {
 }
 
 
+char *init_str = "init";
+pde_t *setupuvm_init(void) {
+    pde_t *pgdir = map_kernel();
+    struct file *init = get_file(init_str);
+    if (!init) {
+        panic("No init found");
+    }
+    // PTE_US so user level process can access it
+    map_memory(pgdir, VIRT_TO_PHYS(init->data), 0, PGSIZE, PTE_RW | PTE_US);
+    return pgdir;
+}
+
+
 // TODO: Zero out bss at bootloader using section info.
 extern char bss_start[];
 extern char bss_end[];
@@ -130,21 +157,36 @@ void zero_out_bss(void) {
     memset(bss_start, 0, bss_end - bss_start);
 }
 
-struct segment_desc gdt[NUM_SEGMENTS];
 
 void set_segment_desc(struct segment_desc *desc, uint32_t base, uint32_t limit, uint8_t type, uint32_t dpl) {
-    desc->limit0 = limit & 0xffff;
+    desc->limit0 = (limit >> 12) & 0xffff;
     desc->base0 = base & 0xffff;
     desc->base1 = (base >> 16) & 0xff;
     desc->type = type;
     desc->s = 1;
     desc->dpl = (dpl & 0x3);
     desc->p = 1;
-    desc->limit = (limit >> 16) & 0xff;
+    desc->limit = (limit >> 28) & 0xff;
     desc->avl = 0;
     desc->l = 0;
     desc->d = 1;
     desc->g = 1;
+}
+
+
+void set_ts_segment_desc(struct segment_desc *desc, uint32_t base, uint32_t limit, uint8_t type, uint32_t dpl) {
+    desc->limit0 = limit & 0xffff;
+    desc->base0 = base & 0xffff;
+    desc->base1 = (base >> 16) & 0xff;
+    desc->type = type;
+    desc->s = 0; // 0 for system segments
+    desc->dpl = (dpl & 0x3);
+    desc->p = 1;
+    desc->limit = (limit >> 16) & 0xff;
+    desc->avl = 0;
+    desc->l = 0;
+    desc->d = 1;
+    desc->g = 0; // byte granualarity instead of 4K granualarity
 }
 
 
@@ -155,25 +197,29 @@ void init_segmentation(void) {
     memset(&gdt[NULL_SEG], 0, sizeof(struct segment_desc));
     set_segment_desc(&gdt[KERN_DATA_SEG],
                      0x0,
-                     0xfffff,
+                     0xffffffff,
                      SEG_TYPE_RW,
                      DPL_KERN);
     set_segment_desc(&gdt[KERN_CODE_SEG],
                      0x0,
-                     0xfffff,
+                     0xffffffff,
                      (SEG_TYPE_RW | SEG_TYPE_EX),
                      DPL_KERN);
     set_segment_desc(&gdt[USER_DATA_SEG],
                      0x0,
-                     0xfffff,
+                     0xffffffff,
                      SEG_TYPE_RW,
                      DPL_USER);
     set_segment_desc(&gdt[USER_CODE_SEG],
                      0x0,
-                     0xfffff,
+                     0xffffffff,
                      SEG_TYPE_RW | SEG_TYPE_EX,
                      DPL_USER);
-
+    set_ts_segment_desc(&gdt[TSS_SEG],
+                        (uint32_t)&task_state,
+                        sizeof(task_state),
+                        SEG_TYPE_T32A,
+                        0);
     gdtr.size = sizeof(gdt) - 1;
     gdtr.offset0 = (uint32_t)gdt & 0xffff;
     gdtr.offset1 = ((uint32_t)gdt >> 16) & 0xffff;

@@ -46,6 +46,25 @@ void set_trap_gate(struct gate *gate_p, uint32_t offset, uint8_t dpl) {
 unsigned int ticks = 0;
 
 
+void dump_regs(struct int_regs *regs) {
+    print("gs: ");
+    printnum(regs->gs);
+    puts("");
+    print("fs: ");
+    printnum(regs->fs);
+    puts("");
+    print("es: ");
+    printnum(regs->es);
+    puts("");
+    print("ds: ");
+    printnum(regs->ds);
+    puts("");
+    print("cs: ");
+    printnum(regs->cs);
+    puts("");
+}
+
+
 void trampoline(struct int_regs *regs) {
     int irq = regs->vector_num & 0xff;
     if (irq == T_IRQ_BASE + IRQ_TIMER) {
@@ -57,7 +76,10 @@ void trampoline(struct int_regs *regs) {
     } else if (irq == T_IRQ_BASE + IRQ_ERR) {
         panic("Internal error in lapic");
     } else {
-        panic("Unknown irq");
+        print("Unknown irq: ");
+        printnum(irq);
+        print("\n");
+        panic("Don't know how to handle it :)");
     }
 }
 

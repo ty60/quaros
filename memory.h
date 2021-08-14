@@ -8,6 +8,14 @@
 #define KERN_BASE_PHYS 0x00000000
 #define KERN_LINK_PHYS 0x00100000
 #define MMDEV_BASE 0xfe000000 // Memory Mapped IO (eg. apic)
+
+/*
+ * va: [KERN_BASE, MMDEV_BASE) is directly mapped to pa: [0, (MMDEV_BASE - KERN_BASE))
+ * VIRT_TO_PHYS: Converts directly mapped va to pa
+ * PHYS_TO_VIRT: Converts pa to directly mapped va
+ * These conversions are used to deal with hardware which can only
+ * recognize physical address, such as the paging hardware.
+ */
 #define VIRT_TO_PHYS(va) (((uint32_t)(va)) - KERN_BASE)
 #define PHYS_TO_VIRT(pa) (((uint32_t)(pa)) + KERN_BASE)
 
@@ -33,16 +41,19 @@ typedef uint32_t pte_t;
 #define PTE_US PDE_US
 
 
-#define NUM_SEGMENTS 5
+#define NUM_SEGMENTS 6
 #define SEG_TYPE_RW (1 << 1)
 #define SEG_TYPE_EX (1 << 3)
 #define SEG_FLAG_GRAN (1 << 2)
+// Available 32-bit TSS (task is not busy) refer to sdm vol3 6.2.2
+#define SEG_TYPE_T32A 0x9
 
 #define NULL_SEG (0)
 #define KERN_DATA_SEG (1)
 #define KERN_CODE_SEG (2)
 #define USER_DATA_SEG (3)
 #define USER_CODE_SEG (4)
+#define TSS_SEG (5)
 
 #define DPL_KERN (0)
 #define DPL_USER (3)
@@ -72,6 +83,8 @@ struct gdt_desc {
     uint16_t offset1;
 } __attribute__((packed));
 
+struct segment_desc gdt[NUM_SEGMENTS];
+
 
 void kfree(void *ptr);
 void *kmalloc(void);
@@ -79,6 +92,8 @@ void register_free_mem(char *start, char *end);
 void init_kernel_memory(void);
 void init_segmentation(void);
 void zero_out_bss(void);
+pde_t *setupuvm_init(void);
+
 
 
 #endif

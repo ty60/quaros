@@ -31,8 +31,24 @@ struct regs {
 
 struct int_regs {
     struct regs saved_regs;
+    uint16_t gs;
+    uint16_t padding0;
+    uint16_t fs;
+    uint16_t padding1;
+    uint16_t es;
+    uint16_t padding2;
+    uint16_t ds;
+    uint16_t padding3;
     uint32_t vector_num;
     uint32_t error_code;
+    uint32_t eip;
+    uint16_t cs;
+    uint16_t padding4;
+    uint32_t eflags;
+    // below are only present on privilege level change
+    uint32_t esp;
+    uint16_t ss;
+    uint16_t padding5;
 };
 
 

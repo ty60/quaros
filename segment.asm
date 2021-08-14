@@ -14,7 +14,7 @@ segment .text
 reload_segment_regs:
     push ebp
     mov ebp, esp
-    jmp KERN_CODE_SEG << 3:reload_cs
+    jmp KERN_CODE_SEG << 3:reload_cs ; far jump is needed for cs reload
 reload_cs:
     xor eax, eax
     mov gs, ax

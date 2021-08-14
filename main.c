@@ -5,6 +5,8 @@
 #include "ioapic.h"
 #include "interrupt.h"
 #include "fs.h"
+#include "proc.h"
+#include "util.h"
 
 
 extern char kernel_end[];
@@ -41,13 +43,16 @@ int main(void) {
     puts("");
     puts("Boot quaros");
 
-    puts("Setup kmalloc");
-    register_free_mem(kernel_end, (char *)(KERN_LINK & ~(0x00ffffff)) + (1024 * 1024 * 4));
-    init_kernel_memory();
-    init_kstack(kmalloc());
-
+    // bss has to be zeroed out first,
+    // before any of the global variables are actually used.
     puts("Fill bss with zero");
     zero_out_bss();
+
+    puts("Setup kmalloc");
+    register_free_mem(kernel_end,
+                      (char *)(KERN_LINK & ~(0x00ffffff)) + (1024 * 1024 * 4));
+    init_kernel_memory();
+    init_kstack(kmalloc() + PGSIZE);
 
     puts("Initialize segmentation");
     init_segmentation();
@@ -66,8 +71,14 @@ int main(void) {
     puts("Initialize file system");
     init_fs();
 
+    puts("Initialize tasks");
+    init_tasks();
+
     puts("Welcome to...");
     show_banner();
+
+    puts("Call init test");
+    alloc_task();
 
     puts("I'm bored");
     bored();

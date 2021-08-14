@@ -67,6 +67,10 @@ void init_fs(void) {
 
 struct file *get_file(const char *path) {
     int i;
+    if (path[0] == '\0') {
+        return NULL;
+    }
+
     for (i = 0; i < MAX_FILES; ++i) {
         if (strcmp(path, filesystem[i].name) == 0) {
             return &filesystem[i];

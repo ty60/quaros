@@ -2,6 +2,7 @@
 *.img
 *.o
 *.elf
+*.d
 compile_commands.json
 cmd.gdb
 vectors.asm
