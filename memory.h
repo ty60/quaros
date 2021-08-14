@@ -92,7 +92,10 @@ void register_free_mem(char *start, char *end);
 void init_kernel_memory(void);
 void init_segmentation(void);
 void zero_out_bss(void);
-pde_t *setupuvm_init(void);
+pde_t *setupuvm_task(const char *path);
+pde_t *map_kernel(void);
+void memcpy_to_another_space(pde_t *pgdir, void *dest, const void *src, size_t n);
+void alloc_map_memory(pde_t *pgdir, uint32_t vaddr, uint32_t size, uint32_t perm);
 
 
 

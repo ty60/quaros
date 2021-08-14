@@ -89,6 +89,6 @@ struct taskstate {
 } task_state;
 
 void init_tasks(void);
-void alloc_task(void);
+struct task_struct *alloc_task(const char *path);
 
 #endif

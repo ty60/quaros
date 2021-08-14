@@ -4,6 +4,8 @@
 #include "asm.h"
 #include "string.h"
 #include "io.h"
+#include "elf.h"
+#include "fs.h"
 
 void ret_to_int_site(void);
 void context_switch(struct task_struct *next_task);
@@ -19,6 +21,8 @@ void switch_to(struct task_struct *next_task) {
     // switch page pable
     lcr3(next_task->pgdir);
     // change task states
+    // TODO: curr_task is NULL here.
+    // Do something about it.
     // curr_task->state = RUNNABLE;
     next_task->state = RUNNING;
 
@@ -63,7 +67,33 @@ void switch_success(void) {
 }
 
 
-void alloc_task(void) {
+int load_elf(struct task_struct *task, Elf32_Ehdr *ehdr) {
+    int i;
+    Elf32_Phdr *phdr;
+
+    if (!CHECK_ELF(ehdr)) {
+        return -1;
+    }
+
+    for (i = 0; i < ehdr->e_phnum; i++) {
+        phdr = ELF_PHDR(ehdr, i);
+        if (phdr->p_type & PT_LOAD) {
+            alloc_map_memory(task->pgdir,
+                             phdr->p_vaddr,
+                             phdr->p_memsz,
+                             PTE_RW | PTE_US);
+            memcpy_to_another_space(task->pgdir,
+                                    (void *)phdr->p_vaddr,
+                                    (const void *)ehdr + phdr->p_offset,
+                                    phdr->p_filesz);
+        }
+    }
+
+    return 0;
+}
+
+
+struct task_struct *alloc_task(const char *path) {
     int i;
     struct task_struct *tp = NULL;
     for (i = 0; i < MAX_TASKS; i++) {
@@ -73,17 +103,30 @@ void alloc_task(void) {
         }
     }
     if (!tp) {
-        panic("No empty task slot");
+        puts("No empty task slot");
+        return NULL;
     }
 
     tp->kstack_top = kmalloc();
     if (!tp->kstack_top) {
-        panic("Out of memory for kstack");
+        puts("Out of memory for kstack");
+        return NULL;
     }
     tp->kstack_top += PGSIZE;
 
-    // TODO: This sets up uvm for "init". Make it more general.
-    tp->pgdir = setupuvm_init();
+    tp->pgdir = map_kernel();
+    struct file *fp = get_file(path);
+    if (!fp) {
+        puts("Cannot find specified file");
+        kfree(tp->kstack_top - PGSIZE);
+        return NULL;
+    }
+    Elf32_Ehdr *ehdr = (Elf32_Ehdr *)(fp->data);
+    if (load_elf(tp, ehdr) < 0) {
+        puts("Loading elf failed");
+        kfree(tp->kstack_top - PGSIZE);
+        return NULL;
+    }
 
     // Setup dummy int_regs frame in order to return from
     // kernel space to user space.
@@ -92,7 +135,8 @@ void alloc_task(void) {
     memset(int_regs_p, 0, sizeof(struct int_regs));
     int_regs_p->ds = (USER_DATA_SEG << 3);
     int_regs_p->es = (USER_DATA_SEG << 3);
-    int_regs_p->eip = (uint32_t)switch_success; // TODO: Should be entry point of ELF?
+    // int_regs_p->eip = (uint32_t)switch_success; // TODO: Should be entry point of ELF?
+    int_regs_p->eip = ehdr->e_entry;
     int_regs_p->cs = (USER_CODE_SEG << 3);
     int_regs_p->eflags = FL_IF;
     int_regs_p->esp = PGSIZE; // user space stack
@@ -112,4 +156,5 @@ void alloc_task(void) {
     tp->context = context_p;
 
     switch_to(tp);
+    return tp;
 }

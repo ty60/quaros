@@ -78,7 +78,7 @@ int main(void) {
     show_banner();
 
     puts("Call init test");
-    alloc_task();
+    alloc_task("init");
 
     puts("I'm bored");
     bored();

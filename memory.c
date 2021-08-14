@@ -59,7 +59,7 @@ void register_free_mem(char *start, char *end) {
 }
 
 
-pde_t *walk_pgdir(pde_t *pgdir, uint32_t vaddr) {
+pte_t *walk_pgdir(pde_t *pgdir, uint32_t vaddr) {
     pde_t *pde_p;
     pte_t *pgtab;
     pde_p = pgdir + ((vaddr >> 22) & 0x3ff);
@@ -105,6 +105,24 @@ void map_memory(pde_t *pgdir, uint32_t vaddr, uint32_t paddr, uint32_t size, uin
 }
 
 
+void alloc_map_memory(pde_t *pgdir, uint32_t vaddr, uint32_t size, uint32_t perm) {
+    uint32_t i;
+    uint32_t num_pages;
+    if (size == 0) {
+        panic("alloc_map_memory: alloc and map 0 bytes");
+        return;
+    } else if (size % PGSIZE == 0) {
+        num_pages = size / PGSIZE;
+    } else {
+        num_pages = size / PGSIZE + 1;
+    }
+    for (i = 0; i < num_pages; i++) {
+        void *pg = kmalloc();
+        map_page(pgdir, vaddr + i * PGSIZE, VIRT_TO_PHYS(pg), perm);
+    }
+}
+
+
 // It is more secure to map the kernel more fine grained
 // with detialed permission management.
 struct map_info kernel_map[] = {
@@ -137,16 +155,31 @@ void init_kernel_memory(void) {
 }
 
 
-char *init_str = "init";
-pde_t *setupuvm_init(void) {
+pde_t *setupuvm_task(const char *path) {
     pde_t *pgdir = map_kernel();
-    struct file *init = get_file(init_str);
-    if (!init) {
-        panic("No init found");
+    struct file *fp = get_file(path);
+    if (!fp) {
+        panic("setupuvm_task: No file found");
     }
     // PTE_US so user level process can access it
-    map_memory(pgdir, VIRT_TO_PHYS(init->data), 0, PGSIZE, PTE_RW | PTE_US);
+    alloc_map_memory(pgdir, 0, fp->size, PTE_RW | PTE_US);
     return pgdir;
+}
+
+
+void memcpy_to_another_space(pde_t *pgdir, void *dest, const void *src, size_t n) {
+    size_t num_pages;
+    if (n % PGSIZE == 0) {
+        num_pages = n / PGSIZE;
+    } else {
+        num_pages = n / PGSIZE + 1;
+    }
+    size_t i;
+    for (i = 0; i < num_pages; i++, n -= PGSIZE) {
+        pte_t *pte_p = walk_pgdir(pgdir, (uint32_t)dest + i * PGSIZE);
+        uint32_t dest_tgt_va = PHYS_TO_VIRT(*pte_p & (~0xfff));
+        memcpy((void *)dest_tgt_va, src, n % PGSIZE);
+    }
 }
 
 
