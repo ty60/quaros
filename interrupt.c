@@ -6,6 +6,7 @@
 #include "ioapic.h"
 #include "io.h"
 #include "asm.h"
+#include "syscall.h"
 
 #define NUM_GATES 256
 
@@ -46,30 +47,14 @@ void set_trap_gate(struct gate *gate_p, uint32_t offset, uint8_t dpl) {
 unsigned int ticks = 0;
 
 
-void dump_regs(struct int_regs *regs) {
-    print("gs: ");
-    printnum(regs->gs);
-    puts("");
-    print("fs: ");
-    printnum(regs->fs);
-    puts("");
-    print("es: ");
-    printnum(regs->es);
-    puts("");
-    print("ds: ");
-    printnum(regs->ds);
-    puts("");
-    print("cs: ");
-    printnum(regs->cs);
-    puts("");
-}
-
-
 void trampoline(struct int_regs *regs) {
     int irq = regs->vector_num & 0xff;
-    if (irq == T_IRQ_BASE + IRQ_TIMER) {
+    if (irq == T_IRQ_BASE + IRQ_SYSCALL) {
+        int ret = handle_syscall(regs->saved_regs.eax);
+        regs->saved_regs.eax = ret;
+    } else if (irq == T_IRQ_BASE + IRQ_TIMER) {
         ticks++;
-        // puts("timer");
+        puts("timer");
         eoi();
     } else if (irq == T_IRQ_BASE + IRQ_SPURIOUS) {
         eoi();
@@ -81,6 +66,7 @@ void trampoline(struct int_regs *regs) {
         print("\n");
         panic("Don't know how to handle it :)");
     }
+    return; // to just before ret_to_int_site
 }
 
 
@@ -91,6 +77,10 @@ void init_idt(void) {
     for (i = 0; i < NUM_GATES; i++) {
         set_interrupt_gate(&idt[i], vector_table[i], DPL_KERN);
     }
+    // set_trap_gate(&idt[T_IRQ_BASE + IRQ_SYSCALL],
+    //               (uint32_t)&vector_table[T_IRQ_BASE + IRQ_SYSCALL], DPL_USER);
+
+    // Disable interrupt on syscall, for big kernel lock.
     set_trap_gate(&idt[T_IRQ_BASE + IRQ_SYSCALL],
                   (uint32_t)&vector_table[T_IRQ_BASE + IRQ_SYSCALL], DPL_USER);
 

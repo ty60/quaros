@@ -1,0 +1,18 @@
+#ifndef SYSCALL_H
+#define SYSCALL_H
+
+#include "interrupt.h"
+
+enum SYS_nums {
+    SYS_open,
+    SYS_read,
+    SYS_write,
+    SYS_exec,
+    SYS_fork,
+
+    NUM_SYSCALL,
+};
+
+int handle_syscall(struct int_regs *frame);
+
+#endif

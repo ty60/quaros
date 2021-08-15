@@ -8,19 +8,28 @@ int putchar(int c) {
 }
 
 
+int printn(const char *s, size_t n) {
+    size_t i;
+    for (i = 0; i < n; ++i) {
+        putchar(s[i]);
+    }
+    return n;
+}
+
+
 int print(const char *s) {
     unsigned int i;
     for (i = 0; i < strlen(s); i++) {
         putchar(s[i]);
     }
-    return 1;
+    return strlen(s);
 }
 
 
 int puts(const char *s) {
     print(s);
     putchar('\n');
-    return 1;
+    return strlen(s) + 1;
 }
 
 

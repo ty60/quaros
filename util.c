@@ -1,5 +1,6 @@
 #include "io.h"
 #include "types.h"
+#include "interrupt.h"
 
 void panic(const char *msg) {
     print("panic: ");
@@ -29,3 +30,24 @@ int atoi(const char *s) {
     }
     return ret;
 }
+
+
+void dump_regs(struct int_regs *regs) {
+    print("gs: ");
+    printnum(regs->gs);
+    puts("");
+    print("fs: ");
+    printnum(regs->fs);
+    puts("");
+    print("es: ");
+    printnum(regs->es);
+    puts("");
+    print("ds: ");
+    printnum(regs->ds);
+    puts("");
+    print("cs: ");
+    printnum(regs->cs);
+    puts("");
+}
+
+

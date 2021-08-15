@@ -3,8 +3,11 @@
 
 #include "memory.h"
 #include "interrupt.h"
+#include "fs.h"
 
 #define MAX_TASKS 1024
+
+#define MAX_OPEN_FILES 8
 
 // Eflags register (from xv6)
 #define FL_CF           0x00000001      // Carry Flag
@@ -31,6 +34,9 @@
 
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
+// Store current CONTEXT.
+// Contexts are register values of current executing process.
+// Be aware that this is different from register values stored for interrupts.
 struct context {
     struct regs regs;
     uint32_t eip;
@@ -43,6 +49,7 @@ struct task_struct {
     enum procstate state;
     pde_t *pgdir;
     void *kstack_top;
+    struct file *open_files[MAX_OPEN_FILES];
 };
 
 struct task_struct tasks[MAX_TASKS];

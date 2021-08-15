@@ -70,6 +70,8 @@ int main(void) {
 
     puts("Initialize file system");
     init_fs();
+    puts("Initialize dev files");
+    init_dev_file();
 
     puts("Initialize tasks");
     init_tasks();

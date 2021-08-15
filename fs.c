@@ -20,6 +20,8 @@ void null_out_space(char *str, size_t n) {
     }
 }
 
+int file_id = 0;
+
 void init_fs(void) {
     // TODO
     // Check if magic header is correct
@@ -51,6 +53,9 @@ void init_fs(void) {
         char *data = (char *)arp + sizeof(struct ar_hdr);
         filesystem[file_cnt].data = data;
 
+        filesystem[file_cnt].id = file_id++;
+        filesystem[file_cnt].type = FT_REGULAR;
+
         file_cnt++;
         if (file_cnt >= MAX_FILES) {
             panic("Too many files");
@@ -62,6 +67,14 @@ void init_fs(void) {
             arp = (struct ar_hdr *)((char *)(arp) + 1);
         }
     }
+}
+
+
+struct file console_file;
+void init_dev_file(void) {
+    console_file.id = file_id++;
+    console_file.type = FT_DEV;
+    strcpy(console_file.name, "console");
 }
 
 
@@ -77,4 +90,31 @@ struct file *get_file(const char *path) {
         }
     }
     return NULL;
+}
+
+
+int read_file(struct file *file, char *buf, size_t count) {
+    uint32_t left = file->size - file->pos;
+    if (left < count) {
+        memcpy(buf, file->data, left);
+        file->pos += left;
+        return left;
+    } else {
+        memcpy(buf, file->data, count);
+        file->pos += count;
+        return count;
+    }
+}
+
+
+/*
+ * TODO: write_file
+ * This is difficult because current (struct file *)->data points directly
+ * to the original ar file.  So memory size of data can't be extended.
+ * data region can be directly allocated, but since kmalloc() only supports
+ * single page allocation per call, file size more than 4K won't be allowed.
+ */
+int write_file(void) {
+    // Stub
+    return 0;
 }

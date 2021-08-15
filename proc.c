@@ -21,10 +21,11 @@ void switch_to(struct task_struct *next_task) {
     // switch page pable
     lcr3(next_task->pgdir);
     // change task states
-    // TODO: curr_task is NULL here.
     // Do something about it.
-    // curr_task->state = RUNNABLE;
+    curr_task->state = RUNNABLE;
     next_task->state = RUNNING;
+
+    curr_task = next_task;
 
     // Switch to next task.
     // i.e.
@@ -38,12 +39,20 @@ void switch_to(struct task_struct *next_task) {
     // it will `ret` here from another task.
 }
 
+extern pde_t *kpgdir;
 
 void init_tasks(void) {
     int i;
     for (i = 0; i < MAX_TASKS; i++) {
         tasks[i].state = UNUSED;
     }
+    curr_task = &tasks[0];
+    tasks[0].state = RUNNING;
+    // context can be NULL since it will be overwritte in context_switch
+    tasks[0].context = NULL;
+    tasks[0].kstack_top = NULL; // TODO can kstack_top be NULL?
+    tasks[0].pgdir = kpgdir;
+    tasks[0].pid = -1; // TODO do something about negative pid
 }
 
 void *memset_debug(void *s, int c, uint32_t n) {
