@@ -50,7 +50,7 @@ unsigned int ticks = 0;
 void trampoline(struct int_regs *regs) {
     int irq = regs->vector_num & 0xff;
     if (irq == T_IRQ_BASE + IRQ_SYSCALL) {
-        int ret = handle_syscall(regs->saved_regs.eax);
+        int ret = handle_syscall(regs);
         regs->saved_regs.eax = ret;
     } else if (irq == T_IRQ_BASE + IRQ_TIMER) {
         ticks++;
@@ -81,8 +81,8 @@ void init_idt(void) {
     //               (uint32_t)&vector_table[T_IRQ_BASE + IRQ_SYSCALL], DPL_USER);
 
     // Disable interrupt on syscall, for big kernel lock.
-    set_trap_gate(&idt[T_IRQ_BASE + IRQ_SYSCALL],
-                  (uint32_t)&vector_table[T_IRQ_BASE + IRQ_SYSCALL], DPL_USER);
+    set_interrupt_gate(&idt[T_IRQ_BASE + IRQ_SYSCALL],
+                  vector_table[T_IRQ_BASE + IRQ_SYSCALL], DPL_USER);
 
     idtr.size = sizeof(idt) - 1;
     idtr.offset0 = (uint32_t)idt & 0xffff;

@@ -22,11 +22,11 @@ int_common:
     push es
     push fs
     push gs
+    pushad
     ; Set kernel segment selectors.
     mov ax, (KERN_DATA_SEG << 3)
     mov ds, ax
     mov es, ax
-    pushad
     push esp ; pass pointer to current stack frame as argument
     call trampoline ; trampoline((struct int_regs *)&curr_stack);
     add esp, 4 ; ignore argument passed to trampoline

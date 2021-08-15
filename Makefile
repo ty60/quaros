@@ -17,7 +17,7 @@ kernel_objs := start.o main.o memory.o util.o segment.o lapic.o uart.o io.o stri
 kernel_ld := kernel.ld
 kernel_elf := kernel.elf
 
-uprog_src := $(wildcard user/*.c) banner.txt
+user_files := $(wildcard user/*.c) $(wildcard uesr/*.asm) banner.txt
 fs := fs.elf
 
 all: $(image)

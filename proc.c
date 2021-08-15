@@ -43,6 +43,7 @@ extern pde_t *kpgdir;
 
 void init_tasks(void) {
     int i;
+    memset(tasks, 0, sizeof(tasks));
     for (i = 0; i < MAX_TASKS; i++) {
         tasks[i].state = UNUSED;
     }
@@ -130,7 +131,7 @@ struct task_struct *alloc_task(const char *path) {
         puts("Out of memory for kstack");
         return NULL;
     }
-    tp->kstack_top += PGSIZE;
+    tp->kstack_top += PGSIZE - 4;
 
     tp->pgdir = map_kernel();
 
@@ -161,7 +162,7 @@ struct task_struct *alloc_task(const char *path) {
     // Set to user level privilege.
     int_regs_p->cs = (USER_CODE_SEG << 3) | DPL_USER;
     int_regs_p->eflags = FL_IF;
-    int_regs_p->esp = PGSIZE; // user space stack
+    int_regs_p->esp = PGSIZE - 4; // user space stack
     int_regs_p->ss = (USER_DATA_SEG << 3) | DPL_USER;
 
     // Setup dummy context frame in order to return to ret_to_int_site

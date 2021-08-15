@@ -45,7 +45,7 @@ int sys_open(struct int_regs *int_frame) {
         }
     }
 
-    if (strcmp("console", path)) {
+    if (!strcmp("console", path)) {
         curr_task->open_files[fd] = &console_file;
     } else if (strcmp("/", path)) {
         // TODO: List files
