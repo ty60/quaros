@@ -36,10 +36,12 @@ void kfree(void *ptr) {
 
 
 void *kmalloc(void) {
+    static int num_allocated = 0;
     void *ret = free_pages;
     if (!ret) {
         panic("kmalloc: no memory to allocate");
     }
+    num_allocated++;
     if (((uint32_t)ret & 0xfff) != 0) {
         panic("kmalloc: page not aligned (kmalloc)");
     }
@@ -50,7 +52,7 @@ void *kmalloc(void) {
 
 void register_free_mem(char *start, char *end) {
     char *now;
-    if (start >= end) {
+    if (PG_ROUNDDOWN(start) >= PG_ROUNDDOWN(end)) {
         panic("Illegal free memory registeration");
     }
     for (now = PG_ROUNDUP(start); now < PG_ROUNDDOWN(end); now += PGSIZE) {
@@ -64,7 +66,7 @@ pte_t *walk_pgdir(pde_t *pgdir, uint32_t vaddr) {
     pte_t *pgtab;
     pde_p = pgdir + ((vaddr >> 22) & 0x3ff);
     if (!(*pde_p & PDE_P)) {
-        panic("walk_pgdir: unmapped memory");
+        return NULL;
     }
     pgtab = (pte_t *)PHYS_TO_VIRT(*pde_p & (~0xfff));
     return pgtab + ((vaddr >> 12) & 0x3ff);
@@ -167,7 +169,7 @@ pde_t *setupuvm_task(const char *path) {
 }
 
 
-void memcpy_to_another_space(pde_t *pgdir, void *dest, const void *src, size_t n) {
+void *memcpy_to_another_space(pde_t *pgdir, void *dest, const void *src, size_t n) {
     size_t num_pages;
     if (n % PGSIZE == 0) {
         num_pages = n / PGSIZE;
@@ -178,8 +180,10 @@ void memcpy_to_another_space(pde_t *pgdir, void *dest, const void *src, size_t n
     for (i = 0; i < num_pages; i++, n -= PGSIZE) {
         pte_t *pte_p = walk_pgdir(pgdir, (uint32_t)dest + i * PGSIZE);
         uint32_t dest_tgt_va = PHYS_TO_VIRT(*pte_p & (~0xfff)) + ((uint32_t)dest % PGSIZE);
-        memcpy((void *)dest_tgt_va, src, n % PGSIZE);
+        memcpy((void *)dest_tgt_va, src,
+                n % PGSIZE == 0 ? PGSIZE : n % PGSIZE);
     }
+    return dest;
 }
 
 

@@ -95,7 +95,17 @@ struct taskstate {
   uint16_t iomb;       // I/O map base address
 } task_state;
 
+extern struct task_struct *curr_task;
+extern struct task_struct *scheduler_task;
+
 void init_tasks(void);
-struct task_struct *alloc_task(const char *path);
+struct task_struct *alloc_task(void);
+void build_int_frame(struct int_regs *int_regs_p, uint32_t entry);
+void build_context(struct context *context_p);
+void schedule(void);
+void create_init_task(void);
+void switch_to(struct task_struct *next_task);
+void build_context(struct context *context_p);
+void build_int_frame(struct int_regs *int_regs_p, uint32_t entry);
 
 #endif

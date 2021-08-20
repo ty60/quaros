@@ -1,11 +1,12 @@
 #include "io.h"
 #include "types.h"
 #include "interrupt.h"
+#include "proc.h"
 
 void panic(const char *msg) {
     print("panic: ");
     puts(msg);
-    __asm__ volatile ("hlt");
+    __asm__ volatile ("cli; hlt");
 }
 
 

@@ -7,6 +7,7 @@
 #include "fs.h"
 #include "proc.h"
 #include "util.h"
+#include "asm.h"
 
 
 extern char kernel_end[];
@@ -25,6 +26,9 @@ static inline void init_kstack(char *kstack) {
 
 void bored(void) {
     while (1) {
+        puts("I'm Sorry Dave");
+        int i;
+        for (i = 0; i < 10000000; i++) ;
     }
 }
 
@@ -49,6 +53,7 @@ int main(void) {
     zero_out_bss();
 
     puts("Setup kmalloc");
+    // entry_pgdir maps 4MB
     register_free_mem(kernel_end,
                       (char *)(KERN_LINK & ~(0x00ffffff)) + (1024 * 1024 * 4));
     init_kernel_memory();
@@ -56,6 +61,11 @@ int main(void) {
 
     puts("Initialize segmentation");
     init_segmentation();
+
+    puts("Setup rest of kmalloc");
+    // init_kernel_memory will map [KERN_BASE: MMDEV_BASE) to physical memory
+    register_free_mem((char *)(KERN_LINK & (~0x00ffffff)) + (1024 * 1024 * 4),
+                      (char *)(KERN_TOP));
 
     puts("Initialize lapic");
     puts("Configure timer");
@@ -79,9 +89,13 @@ int main(void) {
     puts("Welcome to...");
     show_banner();
 
-    puts("Call init test");
-    alloc_task("init");
+    puts("Create init task");
+    create_init_task();
 
-    puts("I'm bored");
+    puts("Become scheduler");
+    schedule();
+
     bored();
+
+    return 0; // means nothing
 }

@@ -7,6 +7,7 @@
 #include "io.h"
 #include "asm.h"
 #include "syscall.h"
+#include "proc.h"
 
 #define NUM_GATES 256
 
@@ -54,8 +55,10 @@ void trampoline(struct int_regs *regs) {
         regs->saved_regs.eax = ret;
     } else if (irq == T_IRQ_BASE + IRQ_TIMER) {
         ticks++;
-        puts("timer");
+        // eoi() has to be called before switch_to()
+        // Otherwise timer interrupt won't be raised in user space.
         eoi();
+        switch_to(scheduler_task);
     } else if (irq == T_IRQ_BASE + IRQ_SPURIOUS) {
         eoi();
     } else if (irq == T_IRQ_BASE + IRQ_ERR) {
@@ -77,9 +80,6 @@ void init_idt(void) {
     for (i = 0; i < NUM_GATES; i++) {
         set_interrupt_gate(&idt[i], vector_table[i], DPL_KERN);
     }
-    // set_trap_gate(&idt[T_IRQ_BASE + IRQ_SYSCALL],
-    //               (uint32_t)&vector_table[T_IRQ_BASE + IRQ_SYSCALL], DPL_USER);
-
     // Disable interrupt on syscall, for big kernel lock.
     set_interrupt_gate(&idt[T_IRQ_BASE + IRQ_SYSCALL],
                   vector_table[T_IRQ_BASE + IRQ_SYSCALL], DPL_USER);
@@ -93,5 +93,4 @@ void init_idt(void) {
 
 void init_interrupt(void) {
     init_idt();
-    sti();
 }

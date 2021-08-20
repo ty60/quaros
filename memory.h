@@ -7,6 +7,10 @@
 #define KERN_LINK 0xc0100000
 #define KERN_BASE_PHYS 0x00000000
 #define KERN_LINK_PHYS 0x00100000
+// I have no idea why, but past 0xc8000000,
+// we won't be able to write anything,
+// although reading from the memory won't raise an exception.
+#define KERN_TOP 0xc8000000
 #define MMDEV_BASE 0xfe000000 // Memory Mapped IO (eg. apic)
 
 /*
@@ -94,7 +98,7 @@ void init_segmentation(void);
 void zero_out_bss(void);
 pde_t *setupuvm_task(const char *path);
 pde_t *map_kernel(void);
-void memcpy_to_another_space(pde_t *pgdir, void *dest, const void *src, size_t n);
+void *memcpy_to_another_space(pde_t *pgdir, void *dest, const void *src, size_t n);
 void alloc_map_memory(pde_t *pgdir, uint32_t vaddr, uint32_t size, uint32_t perm);
 
 

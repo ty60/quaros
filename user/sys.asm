@@ -19,5 +19,7 @@ global %1
 %endmacro
 
 sys open
-sys write
 sys read
+sys write
+sys exec
+sys fork
