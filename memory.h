@@ -100,6 +100,7 @@ pde_t *setupuvm_task(const char *path);
 pde_t *map_kernel(void);
 void *memcpy_to_another_space(pde_t *pgdir, void *dest, const void *src, size_t n);
 void alloc_map_memory(pde_t *pgdir, uint32_t vaddr, uint32_t size, uint32_t perm);
+void unmap_memory(pde_t *pgdir, uint32_t vaddr, uint32_t size);
 
 
 

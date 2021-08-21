@@ -90,17 +90,33 @@ static void map_page(pde_t *pgdir, uint32_t vaddr, uint32_t paddr, uint32_t perm
 }
 
 
+static void unmap_page(pde_t *pgdir, uint32_t vaddr) {
+    pde_t *pde_p;
+    pte_t *pgtab, *pte_p;
+    pde_p = pgdir + ((vaddr >> 22)  & 0x3ff);
+    if (!(*pde_p & PDE_P)) {
+        panic("unmap_page: unmapping page from unallocated page table");
+    }
+    pgtab = (pte_t *)PHYS_TO_VIRT(*pde_p & (~0xfff));
+    pte_p = pgtab + ((vaddr >> 12) & 0x3ff);
+    if (!(*pte_p & PTE_P)) {
+        panic("unmap_page: unmapping unmapped page");
+    }
+    void *tgt = (void *)PHYS_TO_VIRT(*pte_p & (~0xfff));
+    kfree(tgt);
+    *pte_p = 0;
+}
+
+
 void map_memory(pde_t *pgdir, uint32_t vaddr, uint32_t paddr, uint32_t size, uint32_t perm) {
     uint32_t i;
     uint32_t num_pages;
     if (size == 0) {
         panic("map_memory: map 0 bytes");
         return;
-    } else if (size % PGSIZE == 0) {
-        num_pages = size / PGSIZE;
-    } else {
-        num_pages = size / PGSIZE + 1;
     }
+    size = (uint32_t)PG_ROUNDUP(size);
+    num_pages = size / PGSIZE;
     for (i = 0; i < num_pages; i++) {
         map_page(pgdir, vaddr + i * PGSIZE, paddr + i * PGSIZE, perm);
     }
@@ -113,14 +129,26 @@ void alloc_map_memory(pde_t *pgdir, uint32_t vaddr, uint32_t size, uint32_t perm
     if (size == 0) {
         panic("alloc_map_memory: alloc and map 0 bytes");
         return;
-    } else if (size % PGSIZE == 0) {
-        num_pages = size / PGSIZE;
-    } else {
-        num_pages = size / PGSIZE + 1;
     }
+    size = (uint32_t)PG_ROUNDUP(size);
+    num_pages = size / PGSIZE;
     for (i = 0; i < num_pages; i++) {
         void *pg = kmalloc();
         map_page(pgdir, vaddr + i * PGSIZE, VIRT_TO_PHYS(pg), perm);
+    }
+}
+
+
+void unmap_memory(pde_t *pgdir, uint32_t vaddr, uint32_t size) {
+    uint32_t i;
+    uint32_t num_pages;
+    if (size == 0) {
+        panic("unmap_memory: unmap 0 bytes");
+    }
+    size = (uint32_t)PG_ROUNDUP(size);
+    num_pages = size / PGSIZE;
+    for (i = 0; i < num_pages; i++) {
+        unmap_page(pgdir, vaddr + i * PGSIZE);
     }
 }
 

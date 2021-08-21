@@ -4,6 +4,7 @@
 #include "memory.h"
 #include "interrupt.h"
 #include "fs.h"
+#include "elf.h"
 
 #define MAX_TASKS 1024
 
@@ -44,6 +45,7 @@ struct context {
 
 struct task_struct {
     // context_switch() assumes that context is at the front of the struct.
+    // DON'T MOVE IT FROM THE FRONT OF THE STRUCT.
     struct context *context;
     int pid;
     enum procstate state;
@@ -108,5 +110,6 @@ void switch_to(struct task_struct *next_task);
 void build_context(struct context *context_p);
 void build_int_frame(struct int_regs *int_regs_p, uint32_t entry);
 void register_task(struct task_struct *tp, const char *path);
+int load_elf(struct task_struct *task, Elf32_Ehdr *ehdr);
 
 #endif

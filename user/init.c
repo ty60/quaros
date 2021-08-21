@@ -23,9 +23,9 @@ int main(void) {
             }
         }
     } else {
-        write(fd, PARENT_MSG, strlen(PARENT_MSG));
-        // exec("child");
-        write(fd, PARENT_MSG, strlen(ERR_MSG));
+        write(fd, EXEC_MSG, strlen(EXEC_MSG));
+        exec("child");
+        write(fd, ERR_MSG, strlen(ERR_MSG));
         while (1) {
         }
     }

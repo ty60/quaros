@@ -52,16 +52,16 @@ int sys_exec(struct int_regs *frame) {
     if (read_syscall_arg((void *)frame->esp, 0, (uint32_t *)&path) < 0) {
         return -1;
     }
-    puts("sys_exec:");
-    puts(path);
-    puts("");
+
+    // Free current user space memory [0, PGSIZE), but
+    // DON'T UNMAP USER SPACE MEMORY WHEN EXEC FAILS AND RETURNS TO USER PROC.
+    unmap_memory(curr_task->pgdir, 0, PGSIZE);
+
     register_task(curr_task, path);
 
     // Close files
     memset(curr_task->open_files, 0, sizeof(curr_task->open_files));
 
-    // This return value is meaningless,
-    // since the execed program won't think that it has returned from exec()
     return 0;
 }
 

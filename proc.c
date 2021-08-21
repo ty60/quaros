@@ -162,11 +162,11 @@ void build_context(struct context *context_p) {
 void register_task(struct task_struct *tp, const char *path) {
     struct file *fp = get_file(path);
     if (!fp) {
-        panic("call_init: Cannot find init");
+        panic("register_task: Cannot find file");
     }
     Elf32_Ehdr *ehdr = (Elf32_Ehdr *)(fp->data);
     if (load_elf(tp, ehdr) < 0) {
-        panic("call_init: Cannot load init");
+        panic("register_task: Cannot load ELF");
     }
 
     // Setup dummy int_regs frame in order to return from
