@@ -6,6 +6,7 @@
 void panic(const char *msg) {
     print("panic: ");
     puts(msg);
+    puts("I'm sorry Dave");
     __asm__ volatile ("cli; hlt");
 }
 

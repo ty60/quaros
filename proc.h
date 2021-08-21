@@ -50,7 +50,7 @@ struct task_struct {
     int pid;
     enum procstate state;
     pde_t *pgdir;
-    void *kstack_top;
+    void *kstack;
     struct file *open_files[MAX_OPEN_FILES];
 };
 
@@ -111,5 +111,6 @@ void build_context(struct context *context_p);
 void build_int_frame(struct int_regs *int_regs_p, uint32_t entry);
 void register_task(struct task_struct *tp, const char *path);
 int load_elf(struct task_struct *task, Elf32_Ehdr *ehdr);
+void kill_zombies(void);
 
 #endif

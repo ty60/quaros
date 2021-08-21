@@ -13,7 +13,7 @@ int sys_fork(struct int_regs *frame) {
     struct task_struct *tp = alloc_task();
 
     // Copy interrupt frame from parent to child kernel stack
-    struct int_regs *child_frame = tp->kstack_top - sizeof(struct int_regs);
+    struct int_regs *child_frame = KSTACK_TOP(tp->kstack) - sizeof(struct int_regs);
     build_int_frame(child_frame, frame->eip);
     // Copy context frame from parent to child kernel stack
     struct context *child_context = (void *)child_frame - sizeof(struct context);
@@ -45,26 +45,34 @@ int sys_fork(struct int_regs *frame) {
 
 
 int sys_exec(struct int_regs *frame) {
-    // TODO:
-    // We currently assume that all programs are loaded at [0, PGSIZE)
-
+    // TODO: Don't ignore exit code of user process.
     char *path = NULL;
     if (read_syscall_arg((void *)frame->esp, 0, (uint32_t *)&path) < 0) {
         return -1;
     }
 
-    // Free current user space memory [0, PGSIZE), but
-    // DON'T UNMAP USER SPACE MEMORY WHEN EXEC FAILS AND RETURNS TO USER PROC.
-    unmap_memory(curr_task->pgdir, 0, PGSIZE);
-
-    register_task(curr_task, path);
-
+    // Clean up stuff.
+    // DON'T DESTROY USER MEMORY WHEN EXEC FAILS AND RETURNS TO USER PROC.
+    destroy_user_address_space(curr_task->pgdir);
     // Close files
     memset(curr_task->open_files, 0, sizeof(curr_task->open_files));
 
+    register_task(curr_task, path);
     return 0;
 }
 
 
+extern int zombie_exists;
+
+
 int sys_exit(struct int_regs *frame) {
+    if (curr_task == scheduler_task) {
+        panic("sys_exit: Exit scheulder");
+    }
+
+    zombie_exists = 1;
+    curr_task->state = ZOMBIE;
+    switch_to(scheduler_task);
+    panic("sys_exit: Should not return from scheduler");
+    return 0;
 }

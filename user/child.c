@@ -5,11 +5,12 @@
 
 int main(void) {
     int fd = open("console");
-    int i;
-    while (1) {
+    int i, j;
+    for (i = 0; i < 10; i++) {
         write(fd, CHILD_MSG, strlen(CHILD_MSG));
-        for (i = 0; i < INTERVAL; i++) {
+        for (j = 0; j < INTERVAL; j++) {
         }
     }
-    return 0;
+    write(fd, "Bye!\n", 5);
+    exit(0);
 }

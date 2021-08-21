@@ -9,6 +9,7 @@ int read(int fd, void *buf, size_t count);
 int write(int fd, const void *buf, size_t count);
 int fork(void);
 int exec(const char *path);
+int exit(int status);
 
 
 char *strcpy(char *dest, const char *src) {

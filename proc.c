@@ -17,13 +17,15 @@ struct task_struct *scheduler_task;
 void switch_to(struct task_struct *next_task) {
     // Configure tss
     task_state.ss0 = (KERN_DATA_SEG << 3);
-    task_state.esp0 = (uint32_t)next_task->kstack_top;
+    task_state.esp0 = KSTACK_TOP((uint32_t)next_task->kstack);
     task_state.iomb = sizeof(task_state);
     // switch page pable
     lcr3(next_task->pgdir);
     // change task states
-    // Do something about it.
-    curr_task->state = RUNNABLE;
+    if (curr_task->state == RUNNING) {
+        // So we don't make ZOMBIE RUNNABLE again.
+        curr_task->state = RUNNABLE;
+    }
     next_task->state = RUNNING;
 
     // Switch to next task.
@@ -63,7 +65,7 @@ void init_tasks(void) {
     tasks[0].state = RUNNING;
     // context can be NULL since it will be overwritte in context_switch
     tasks[0].context = NULL;
-    tasks[0].kstack_top = NULL; // TODO can kstack_top be NULL?
+    tasks[0].kstack = NULL;
     tasks[0].pgdir = kpgdir;
     tasks[0].pid = 0;
 }
@@ -125,15 +127,44 @@ struct task_struct *alloc_task(void) {
         puts("No empty task slot");
         return NULL;
     }
-    tp->kstack_top = kmalloc();
-    if (!tp->kstack_top) {
+    tp->kstack = kmalloc();
+    if (!tp->kstack) {
         puts("Out of memory for kstack");
         return NULL;
     }
-    tp->kstack_top += PGSIZE - 4;
     tp->pgdir = map_kernel();
 
     return tp;
+}
+
+
+void destroy_task(struct task_struct *task) {
+    task->context = NULL;
+    task->pid = 0;
+    task->state = UNUSED;
+    destroy_address_space(task->pgdir);
+    task->pgdir = NULL;
+    kfree(task->kstack);
+    task->kstack = NULL;
+    memset(task->open_files, 0, sizeof(task->open_files));
+}
+
+
+int zombie_exists = 0;
+void kill_zombies(void) {
+    if (!zombie_exists) {
+        return;
+    }
+
+    // TODO: Use zombie list or something.
+    int i;
+    for (i = 0; i < MAX_TASKS; i++) {
+        if (tasks[i].state != ZOMBIE) {
+            continue;
+        }
+        destroy_task(&tasks[i]);
+    }
+    zombie_exists = 0;
 }
 
 
@@ -172,7 +203,7 @@ void register_task(struct task_struct *tp, const char *path) {
     // Setup dummy int_regs frame in order to return from
     // kernel space to user space.
     struct int_regs *int_regs_p;
-    int_regs_p = (struct int_regs *)(tp->kstack_top - sizeof(struct int_regs));
+    int_regs_p = (struct int_regs *)(KSTACK_TOP(tp->kstack) - sizeof(struct int_regs));
     build_int_frame(int_regs_p, ehdr->e_entry);
 
     // Setup dummy context frame in order to return to ret_to_int_site

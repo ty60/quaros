@@ -9,6 +9,7 @@ section .text
 %define SYS_write 2
 %define SYS_exec 3
 %define SYS_fork 4
+%define SYS_exit 5
 
 %macro sys 1
 global %1
@@ -23,3 +24,4 @@ sys read
 sys write
 sys exec
 sys fork
+sys exit

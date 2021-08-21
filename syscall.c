@@ -35,6 +35,7 @@ handler_t handlers[] = {
     [SYS_open] = sys_open,
     [SYS_fork] = sys_fork,
     [SYS_exec] = sys_exec,
+    [SYS_exit] = sys_exit,
 };
 
 int handle_syscall(struct int_regs *int_frame) {

@@ -69,6 +69,7 @@ void trampoline(struct int_regs *regs) {
         print("\n");
         panic("Don't know how to handle it :)");
     }
+    kill_zombies();
     return; // to just before ret_to_int_site
 }
 

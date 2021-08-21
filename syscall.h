@@ -9,6 +9,7 @@ enum SYS_nums {
     SYS_write,
     SYS_exec,
     SYS_fork,
+    SYS_exit,
 
     NUM_SYSCALL,
 };

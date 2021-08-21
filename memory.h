@@ -27,6 +27,7 @@ typedef uint32_t pde_t;
 typedef uint32_t pte_t;
 
 #define PDE_SIZE 1024
+#define PTE_SIZE PDE_SIZE
 
 #define PGSIZE 0x1000
 #define PG_ROUNDDOWN(addr) \
@@ -61,6 +62,8 @@ typedef uint32_t pte_t;
 
 #define DPL_KERN (0)
 #define DPL_USER (3)
+
+#define KSTACK_TOP(kstack) (kstack + PGSIZE - 4)
 
 
 struct map_info {
@@ -101,6 +104,8 @@ pde_t *map_kernel(void);
 void *memcpy_to_another_space(pde_t *pgdir, void *dest, const void *src, size_t n);
 void alloc_map_memory(pde_t *pgdir, uint32_t vaddr, uint32_t size, uint32_t perm);
 void unmap_memory(pde_t *pgdir, uint32_t vaddr, uint32_t size);
+void destroy_user_address_space(pde_t *pgdir);
+void destroy_address_space(pde_t *pgdir);
 
 
 

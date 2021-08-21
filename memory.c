@@ -178,6 +178,35 @@ pde_t *map_kernel(void) {
 }
 
 
+void destroy_user_address_space(pde_t *pgdir) {
+    // TODO:
+    // We currently assume that all programs are loaded at [0, PGSIZE)
+    unmap_memory(pgdir, 0, PGSIZE);
+}
+
+
+void destroy_address_space(pde_t *pgdir) {
+    // User memory has to be freed when this function is called.
+    int i;
+    pde_t *pde;
+    pte_t *pgtab;
+
+    // Destroy user space
+    destroy_user_address_space(pgdir);
+
+    // Destroy kernel space
+    for (i = 0; i < PDE_SIZE; i++) {
+        pde = pgdir + i;
+        if (!(*pde & PDE_P)) {
+            continue;
+        }
+        pgtab = (pte_t *)PHYS_TO_VIRT(*pde & (~0xfff));
+        kfree(pgtab);
+    }
+    kfree(pgdir);
+}
+
+
 pde_t *kpgdir = NULL;
 void init_kernel_memory(void) {
     kpgdir = map_kernel();
