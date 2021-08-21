@@ -15,11 +15,9 @@ int sys_fork(struct int_regs *frame) {
     // Copy interrupt frame from parent to child kernel stack
     struct int_regs *child_frame = tp->kstack_top - sizeof(struct int_regs);
     build_int_frame(child_frame, frame->eip);
-    // *child_frame = *frame;
     // Copy context frame from parent to child kernel stack
     struct context *child_context = (void *)child_frame - sizeof(struct context);
     build_context(child_context);
-    // *child_context = *curr_task->context;
     tp->context = child_context;
 
     // Copy callee saved registers
@@ -31,9 +29,6 @@ int sys_fork(struct int_regs *frame) {
     // map same virtual memory space as parent process.
     // Currently assume that only the first page is mapped [0, PGSIZE).
     // TODO: Do something better. Too dumb.
-    // TODO: I think the memcpy_to_another_space is broken.
-    // It seems that kernel space is returning address of pid == 2,
-    // but the program seems to be not loaded at that part.
     alloc_map_memory(tp->pgdir, 0, PGSIZE, PTE_RW | PTE_US);
     // Copy current task's user space memory ([0, PGSIZE)) to new task.
     memcpy_to_another_space(tp->pgdir, 0, 0, PGSIZE);
@@ -50,4 +45,26 @@ int sys_fork(struct int_regs *frame) {
 
 
 int sys_exec(struct int_regs *frame) {
+    // TODO:
+    // We currently assume that all programs are loaded at [0, PGSIZE)
+
+    char *path = NULL;
+    if (read_syscall_arg((void *)frame->esp, 0, (uint32_t *)&path) < 0) {
+        return -1;
+    }
+    puts("sys_exec:");
+    puts(path);
+    puts("");
+    register_task(curr_task, path);
+
+    // Close files
+    memset(curr_task->open_files, 0, sizeof(curr_task->open_files));
+
+    // This return value is meaningless,
+    // since the execed program won't think that it has returned from exec()
+    return 0;
+}
+
+
+int sys_exit(struct int_regs *frame) {
 }

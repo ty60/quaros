@@ -170,6 +170,7 @@ pde_t *setupuvm_task(const char *path) {
 
 
 void *memcpy_to_another_space(pde_t *pgdir, void *dest, const void *src, size_t n) {
+    // TODO: Make this simpler.
     size_t num_pages;
     if (n % PGSIZE == 0) {
         num_pages = n / PGSIZE;

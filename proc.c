@@ -159,10 +159,8 @@ void build_context(struct context *context_p) {
 }
 
 
-void create_init_task(void) {
-    struct task_struct *tp;
-    tp = alloc_task();
-    struct file *fp = get_file("init");
+void register_task(struct task_struct *tp, const char *path) {
+    struct file *fp = get_file(path);
     if (!fp) {
         panic("call_init: Cannot find init");
     }
@@ -187,4 +185,11 @@ void create_init_task(void) {
     build_context(context_p);
 
     tp->state = RUNNABLE;
+}
+
+
+void create_init_task(void) {
+    struct task_struct *tp;
+    tp = alloc_task();
+    register_task(tp, "init");
 }

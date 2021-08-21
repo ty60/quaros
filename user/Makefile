@@ -6,12 +6,15 @@ CFLAGS := -m32 -Wall -Wextra -fno-stack-protector -fno-pic -fno-builtin -fno-str
 
 LDFLAGS := -m elf_i386 --build-id=none
 
-progs := init
+progs := init child
 sys_obj := sys.o
 
 all: $(progs)
 
 init: init.o $(sys_obj)
+	$(LD) $(LDFLAGS) -N -T ./user.ld -o bin/$@ $^
+
+child: child.o $(sys_obj)
 	$(LD) $(LDFLAGS) -N -T ./user.ld -o bin/$@ $^
 
 $(sys_obj): sys.asm

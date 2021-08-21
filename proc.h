@@ -107,5 +107,6 @@ void create_init_task(void);
 void switch_to(struct task_struct *next_task);
 void build_context(struct context *context_p);
 void build_int_frame(struct int_regs *int_regs_p, uint32_t entry);
+void register_task(struct task_struct *tp, const char *path);
 
 #endif

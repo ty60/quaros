@@ -63,7 +63,7 @@ int main(void) {
     init_segmentation();
 
     puts("Setup rest of kmalloc");
-    // init_kernel_memory will map [KERN_BASE: MMDEV_BASE) to physical memory
+    // init_kernel_memory will map [KERN_BASE: KERN_TOP) to physical memory
     register_free_mem((char *)(KERN_LINK & (~0x00ffffff)) + (1024 * 1024 * 4),
                       (char *)(KERN_TOP));
 
