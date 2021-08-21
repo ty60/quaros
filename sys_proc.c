@@ -57,7 +57,16 @@ int sys_exec(struct int_regs *frame) {
     // Close files
     memset(curr_task->open_files, 0, sizeof(curr_task->open_files));
 
-    register_task(curr_task, path);
+    struct file *fp = get_file(path);
+    if (!fp) {
+        panic("register_task: Cannot find file");
+    }
+    Elf32_Ehdr *ehdr = (Elf32_Ehdr *)(fp->data);
+    if (load_elf(curr_task, ehdr) < 0) {
+        panic("register_task: Cannot load ELF");
+    }
+
+    frame->eip = ehdr->e_entry;
     return 0;
 }
 
