@@ -74,6 +74,7 @@ int main(void) {
     disable_pic();
     puts("Initialize ioapic");
     init_ioapic();
+    enable_ioapic(IRQ_SERIAL);
 
     puts("Initialize interrupt");
     init_interrupt();

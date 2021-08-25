@@ -8,6 +8,7 @@
 #include "asm.h"
 #include "syscall.h"
 #include "proc.h"
+#include "uart.h"
 
 #define NUM_GATES 256
 
@@ -59,6 +60,10 @@ void trampoline(struct int_regs *regs) {
         // Otherwise timer interrupt won't be raised in user space.
         eoi();
         switch_to(scheduler_task);
+    } else if (irq == T_IRQ_BASE + IRQ_SERIAL) {
+        int ch = handle_uartintr();
+        write_circular_buf(ch);
+        eoi();
     } else if (irq == T_IRQ_BASE + IRQ_SPURIOUS) {
         eoi();
     } else if (irq == T_IRQ_BASE + IRQ_ERR) {

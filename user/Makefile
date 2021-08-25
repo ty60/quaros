@@ -6,22 +6,20 @@ CFLAGS := -m32 -Wall -Wextra -fno-stack-protector -fno-pic -fno-builtin -fno-str
 
 LDFLAGS := -m elf_i386 --build-id=none
 
-progs := init child
-sys_obj := sys.o
+progs := $(patsubst %.c, %, $(filter-out util.c, $(wildcard *.c)))
+ulib_obj := sys.o util.o
 
-all: $(progs)
+# ulib_obj has to be in the front.
+all: $(ulib_obj) $(progs) 
 
-init: init.o $(sys_obj)
-	$(LD) $(LDFLAGS) -N -T ./user.ld -o bin/$@ $^
-
-child: child.o $(sys_obj)
-	$(LD) $(LDFLAGS) -N -T ./user.ld -o bin/$@ $^
-
-$(sys_obj): sys.asm
-	nasm -f elf32 $<
+%: %.o
+	ld $(LDFLAGS) -N -T ./user.ld -o bin/$@ $@.o $(ulib_obj)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
+
+sys.o: sys.asm
+	nasm -f elf32 $<
 
 clean:
 	rm -f $(progs) *.o

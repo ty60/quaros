@@ -6,6 +6,7 @@
 #define AR_MAGIC "!<arch>\n"
 #define MAX_FILES 32
 #define MAX_NAME 15
+#define MAX_FILE_SIZE PGSIZE
 
 struct ar_hdr {
     uint8_t file_id[16];
@@ -27,6 +28,7 @@ struct file {
     uint32_t size;
     uint32_t pos;
     uint32_t type;
+    int in_use;
     int8_t name[MAX_NAME + 1];
     int8_t *data;
 };
@@ -38,7 +40,9 @@ struct file filesystem[MAX_FILES];
 void init_fs(void);
 void init_dev_file(void);
 struct file *get_file(const char *path);
+struct file *alloc_file(const char *path);
 int read_file(struct file *file, char *buf, size_t count);
+int write_file(struct file *file, char *buf, size_t count);
 
 
 #endif

@@ -3,6 +3,7 @@
 #include "string.h"
 #include "fs.h"
 #include "io.h"
+#include "memory.h"
 
 extern char fsar_start[];
 extern char fsar_end[];
@@ -27,6 +28,10 @@ void init_fs(void) {
     // Check if magic header is correct
 
     memset(filesystem, 0, sizeof(filesystem));
+    int i;
+    for (i = 0; i < MAX_FILES; i++) {
+        filesystem[i].in_use = 0;
+    }
 
     int file_cnt = 0;
     struct ar_hdr* arp = (struct ar_hdr *)(fsar_start + strlen(AR_MAGIC));
@@ -49,12 +54,21 @@ void init_fs(void) {
         size = atoi((char *)tmp);
         filesystem[file_cnt].size = size;
 
+        if (size > PGSIZE) {
+            // TODO: Solving this is pretty difficult.
+            // Since we currently only support page level dynamic memory allocation.
+            panic("init_fs: file larger than 4K is unsupported");
+        }
+
         // parse and point to file data
         char *data = (char *)arp + sizeof(struct ar_hdr);
-        filesystem[file_cnt].data = data;
+        filesystem[file_cnt].data = kmalloc();
+        memset(filesystem[file_cnt].data, 0, PGSIZE);
+        memcpy(filesystem[file_cnt].data, data, size);
 
         filesystem[file_cnt].id = file_id++;
         filesystem[file_cnt].type = FT_REGULAR;
+        filesystem[file_cnt].in_use = 1;
 
         file_cnt++;
         if (file_cnt >= MAX_FILES) {
@@ -84,12 +98,38 @@ struct file *get_file(const char *path) {
         return NULL;
     }
 
-    for (i = 0; i < MAX_FILES; ++i) {
+    for (i = 0; i < MAX_FILES; i++) {
         if (strcmp(path, filesystem[i].name) == 0) {
             return &filesystem[i];
         }
     }
     return NULL;
+}
+
+
+struct file *alloc_file(const char *path) {
+    int i;
+    struct file *fp = NULL;
+    for (i = 0; i < MAX_FILES; i++) {
+        if (!filesystem[i].in_use) {
+            fp = &filesystem[i];
+            break;
+        }
+    }
+    if (!fp || sizeof(fp->name) - 1 < strlen(path)) {
+        return NULL;
+    }
+    strcpy(filesystem[i].name, path);
+    filesystem[i].in_use = 1;
+    return fp;
+}
+
+
+void release_file(struct file *fp) {
+    if (!(filesystem <= fp && filesystem + sizeof(filesystem) < fp)) {
+        panic("release_file: realeasing file out of filesystem");
+    }
+    fp->in_use = 0;
 }
 
 
@@ -106,15 +146,12 @@ int read_file(struct file *file, char *buf, size_t count) {
     }
 }
 
-
-/*
- * TODO: write_file
- * This is difficult because current (struct file *)->data points directly
- * to the original ar file.  So memory size of data can't be extended.
- * data region can be directly allocated, but since kmalloc() only supports
- * single page allocation per call, file size more than 4K won't be allowed.
- */
-int write_file(void) {
-    // Stub
+int write_file(struct file *file, char *buf, size_t count) {
+    if (file->pos + count > PGSIZE) {
+        // TODO: Support this.
+        panic("File larger than PGSIZE is unsupported");
+    }
+    memcpy(file->data + file->pos, buf, count);
+    file->pos += count;
     return 0;
 }

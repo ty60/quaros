@@ -1,5 +1,6 @@
 #include "uart.h"
 #include "string.h"
+#include "util.h"
 
 
 int putchar(int c) {
@@ -52,4 +53,55 @@ int printnum(int x) {
         putchar(tmp[i]);
     }
     return 1;
+}
+
+
+#define MAX_BUF 4096
+unsigned int buf_len, edit_len;
+unsigned int edit_i, write_i, read_i;
+int circular_buf[MAX_BUF];
+
+void write_circular_buf(int ch) {
+    if (ch == DEL) {
+        if (edit_len > 0) {
+            edit_i = (edit_i - 1) % MAX_BUF;
+            edit_len--;
+        }
+        return;
+    }
+    if (edit_len == MAX_BUF) {
+        // TODO: Don't panic when buffer is full.
+        panic("update_input_buf: Circular buffer full");
+    }
+    circular_buf[edit_i] = ch;
+    edit_i = (edit_i + 1) % MAX_BUF;
+    edit_len++;
+    if (ch == '\n') {
+        write_i = edit_i;
+        buf_len = edit_len;
+    }
+}
+
+
+// static inline int read_circular_buf(void) {
+int read_circular_buf(void) {
+    if (buf_len == 0) {
+        // empty
+        return -1;
+    }
+    int ret = circular_buf[read_i];
+    read_i = (read_i + 1) % MAX_BUF;
+    buf_len--;
+    edit_len--;
+    return ret;
+}
+
+
+int read_console(char *buf, size_t count) {
+    int ch, i;
+    i = 0;
+    while (count-- > 0 && (ch = read_circular_buf()) >= 0) {
+        buf[i++] = ch;
+    }
+    return i;
 }
