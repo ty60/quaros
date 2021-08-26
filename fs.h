@@ -41,6 +41,7 @@ void init_fs(void);
 void init_dev_file(void);
 struct file *get_file(const char *path);
 struct file *alloc_file(const char *path);
+void release_file(struct file *fp);
 int read_file(struct file *file, char *buf, size_t count);
 int write_file(struct file *file, char *buf, size_t count);
 

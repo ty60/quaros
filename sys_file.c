@@ -110,6 +110,17 @@ int sys_write(struct int_regs *int_frame) {
 }
 
 
-// TODO
 int sys_close(struct int_regs *int_frame) {
+    uint32_t user_esp = int_frame->esp;
+    int fd;
+    if (read_syscall_arg((void *)user_esp, 0, (uint32_t *)&fd) < 0) {
+        return -1;
+    }
+    struct file *fp = curr_task->open_files[fd];
+    if (!fp)
+        return -1;
+    if (!fp->in_use)
+        return -1;
+    curr_task->open_files[fd] = NULL;
+    return 0;
 }

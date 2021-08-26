@@ -120,6 +120,7 @@ struct file *alloc_file(const char *path) {
         return NULL;
     }
     strcpy(filesystem[i].name, path);
+    filesystem[i].data = kmalloc();
     filesystem[i].in_use = 1;
     return fp;
 }
@@ -128,6 +129,10 @@ struct file *alloc_file(const char *path) {
 void release_file(struct file *fp) {
     if (!(filesystem <= fp && filesystem + sizeof(filesystem) < fp)) {
         panic("release_file: realeasing file out of filesystem");
+    }
+    memset(fp->name, 0, sizeof(fp->name));
+    if (fp->data) {
+        kfree(fp->data);
     }
     fp->in_use = 0;
 }

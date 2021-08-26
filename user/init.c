@@ -14,13 +14,8 @@ int main(void) {
     pid = fork();
     if (pid > 0) {
         int wfd = open("test.txt", O_RDWR);
-        print(fd, "wfd: ");
-        printnum(fd, wfd);
-        puts(fd, "");
-        print(wfd, "this is test data");
-        puts(fd, "init is going asleep");
-        while (1)
-            ;
+        close(wfd);
+        exit(1);
     } else {
         exec("echosh");
         puts(fd, "exec() failed");

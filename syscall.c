@@ -33,6 +33,7 @@ handler_t handlers[] = {
     [SYS_read] = sys_read,
     [SYS_write] = sys_write,
     [SYS_open] = sys_open,
+    [SYS_close] = sys_close,
     [SYS_fork] = sys_fork,
     [SYS_exec] = sys_exec,
     [SYS_exit] = sys_exit,

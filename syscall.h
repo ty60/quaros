@@ -7,6 +7,7 @@ enum SYS_nums {
     SYS_open,
     SYS_read,
     SYS_write,
+    SYS_close,
     SYS_exec,
     SYS_fork,
     SYS_exit,
