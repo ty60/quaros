@@ -3,13 +3,6 @@
 #include "interrupt.h"
 #include "proc.h"
 
-void panic(const char *msg) {
-    print("panic: ");
-    puts(msg);
-    puts("I'm sorry Dave");
-    __asm__ volatile ("cli; hlt");
-}
-
 
 int atoi(const char *s) {
     const char *p = s;
@@ -53,3 +46,8 @@ void dump_regs(struct int_regs *regs) {
 }
 
 
+void panic(const char *msg) {
+    puts("I'm sorry Dave:");
+    puts(msg);
+    __asm__ volatile ("cli; hlt");
+}

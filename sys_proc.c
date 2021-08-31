@@ -7,6 +7,7 @@
 #include "io.h"
 #include "util.h"
 #include "sys_proc.h"
+#include "asm.h"
 
 
 int sys_fork(struct int_regs *frame) {
@@ -29,6 +30,8 @@ int sys_fork(struct int_regs *frame) {
     // map same virtual memory space as parent process.
     // Currently assume that only the first page is mapped [0, PGSIZE).
     // TODO: Do something better. Too dumb.
+    // Reuse load_elf() or something.
+    // This function doesn't assume that only the first page is mapped.
     alloc_map_memory(tp->pgdir, 0, PGSIZE, PTE_RW | PTE_US);
     // Copy current task's user space memory ([0, PGSIZE)) to new task.
     memcpy_to_another_space(tp->pgdir, 0, 0, PGSIZE);
@@ -44,29 +47,87 @@ int sys_fork(struct int_regs *frame) {
 }
 
 
-int sys_exec(struct int_regs *frame) {
-    // TODO: Don't ignore exit code of user process.
+static int prepare_ustack(pde_t *pgdir, uint32_t *espp, const char **argv) {
+    char *argv_ps[MAX_ARGC];
+    int argc = 0;
+    void *esp = (void *)*espp;
+
+    if (!argv) {
+        // No arguments
+        memcpy_to_another_space(pgdir, (int *)esp, &argc, sizeof(argc));
+        *espp = (uint32_t)esp - 4;
+        return 0;
+    }
+
+    while (argc < MAX_ARGC) {
+        const char *arg;
+        if (read_user_mem((void *)argv, (uint32_t *)&arg) < 0) {
+            return -1;
+        }
+        if (!arg) {
+            break;
+        }
+        int len = strlen(arg);
+        if (len > (PGSIZE / 3) / MAX_ARGC) {
+            break;
+        }
+        esp -= (len + 1);
+        memcpy_to_another_space(pgdir, esp, *argv++, len);
+        argv_ps[argc++] = (char *)esp;
+    }
+
+    esp -= 4; // So pointer to argvs won't overlap with argv on stack
+    esp = (void *)((uint32_t)esp & ~(4 - 1)); // Round down to 0x4 alignment
+    int i;
+    for (i = argc - 1; i >= 0; i--) {
+        memcpy_to_another_space(pgdir, (char **)(esp), &argv_ps[i], sizeof(argv_ps[i]));
+        esp -= 4;
+    }
+
+    char **uargv = esp + 4;
+    memcpy_to_another_space(pgdir, (char **)(esp), &uargv, sizeof(uargv));
+    esp -= 4;
+
+    memcpy_to_another_space(pgdir, (int *)esp, &argc, sizeof(argc));
+    *espp = (uint32_t)esp - 4;
+    return 0;
+}
+
+
+int sys_execv(struct int_regs *frame) {
     char *path = NULL;
     if (read_syscall_arg((void *)frame->esp, 0, (uint32_t *)&path) < 0) {
         return -1;
     }
+    const char **argv = NULL;
+    if (read_syscall_arg((void *)frame->esp, 1, (uint32_t *)&argv) < 0) {
+        return -1;
+    }
 
-    // Clean up stuff.
-    // DON'T DESTROY USER MEMORY WHEN EXEC FAILS AND RETURNS TO USER PROC.
-    destroy_user_address_space(curr_task->pgdir);
-    // Close files
-    memset(curr_task->open_files, 0, sizeof(curr_task->open_files));
+    pde_t *old_pgdir = curr_task->pgdir;
+    curr_task->pgdir = map_kernel();
 
     struct file *fp = get_file(path);
     if (!fp) {
-        panic("register_task: Cannot find file");
+        destroy_address_space(curr_task->pgdir);
+        return -1;
     }
     Elf32_Ehdr *ehdr = (Elf32_Ehdr *)(fp->data);
     if (load_elf(curr_task, ehdr) < 0) {
-        panic("register_task: Cannot load ELF");
+        destroy_address_space(curr_task->pgdir);
+        return -1;
     }
 
     frame->eip = ehdr->e_entry;
+    frame->esp = PGSIZE - 8;
+    if (prepare_ustack(curr_task->pgdir, &frame->esp, argv) < 0) {
+        destroy_address_space(curr_task->pgdir);
+        return -1;
+    }
+
+    memset(curr_task->open_files, 0, sizeof(curr_task->open_files));
+    destroy_address_space(old_pgdir);
+    lcr3(curr_task->pgdir);
     return 0;
 }
 
@@ -75,6 +136,7 @@ extern int zombie_exists;
 
 
 int sys_exit(struct int_regs *frame) {
+    // TODO: Don't ignore exit code of user process.
     if (curr_task == scheduler_task) {
         panic("sys_exit: Exit scheulder");
     }

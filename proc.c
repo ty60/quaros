@@ -179,7 +179,7 @@ void build_int_frame(struct int_regs *int_regs_p, uint32_t entry) {
     int_regs_p->eip = entry;
     int_regs_p->cs = (USER_CODE_SEG << 3) | DPL_USER;
     int_regs_p->eflags = FL_IF; // Enable interrupt in user space
-    int_regs_p->esp = PGSIZE - 4; // user space stack
+    int_regs_p->esp = PGSIZE - 8; // user space stack
     int_regs_p->ss = (USER_DATA_SEG << 3) | DPL_USER;
 }
 

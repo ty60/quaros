@@ -8,7 +8,7 @@ section .text
 %define SYS_read 1
 %define SYS_write 2
 %define SYS_close 3
-%define SYS_exec 4
+%define SYS_execv 4
 %define SYS_fork 5
 %define SYS_exit 6
 
@@ -23,7 +23,7 @@ global %1
 sys open
 sys read
 sys write
-sys exec
+sys execv
 sys fork
 sys exit
 sys close

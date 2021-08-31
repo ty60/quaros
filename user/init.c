@@ -17,7 +17,8 @@ int main(void) {
         close(wfd);
         exit(1);
     } else {
-        exec("echosh");
+        char *argv[] = { "hogehoge", "fugafugafuga", NULL };
+        execv("echosh", argv);
         puts(fd, "exec() failed");
         while (1) {
         }

@@ -22,9 +22,20 @@ int read_line(int fd, char *buf, int buf_size) {
 }
 
 
-int main(void) {
+int main(int argc, char **argv) {
     int fd = open("console", 0);
     char buf[1024];
+    puts(fd, argv[0]);
+    print(fd, "argc: "); printnum(fd, argc); puts(fd, "");
+    puts(fd, "Before I loop let me show you argvs");
+    if (argc == 0) {
+        puts(fd, "No arguments...");
+    } else {
+        int i;
+        for (i = 0; i < argc; i++) {
+            puts(fd, argv[i]);
+        }
+    }
     while (1) {
         int n;
         print(fd, "$ ");

@@ -6,6 +6,7 @@ char *strcpy(char *dest, const char *src) {
     while (src[i]) {
         *dest++ = src[i++];
     }
+    *dest = '\0';
     return dest;
 }
 

@@ -14,7 +14,7 @@ typedef int (*handler_t)(struct int_regs *int_frame);
 
 
 int read_user_mem(void *addr, uint32_t *data) {
-    if ((uint32_t)addr + sizeof(uint32_t) >= KERN_BASE) {
+    if ((uint32_t)addr >= KERN_BASE || (uint32_t)addr + sizeof(uint32_t) >= KERN_BASE) {
         // Syscall should not access kernel memory
         // on behalf of user level program.
         return -1;
@@ -35,7 +35,7 @@ handler_t handlers[] = {
     [SYS_open] = sys_open,
     [SYS_close] = sys_close,
     [SYS_fork] = sys_fork,
-    [SYS_exec] = sys_exec,
+    [SYS_execv] = sys_execv,
     [SYS_exit] = sys_exit,
 };
 

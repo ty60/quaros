@@ -95,12 +95,12 @@ static void unmap_page(pde_t *pgdir, uint32_t vaddr) {
     pte_t *pgtab, *pte_p;
     pde_p = pgdir + ((vaddr >> 22)  & 0x3ff);
     if (!(*pde_p & PDE_P)) {
-        panic("unmap_page: unmapping page from unallocated page table");
+        panic("unmap_page: unmapping page from an unallocated page table");
     }
     pgtab = (pte_t *)PHYS_TO_VIRT(*pde_p & (~0xfff));
     pte_p = pgtab + ((vaddr >> 12) & 0x3ff);
     if (!(*pte_p & PTE_P)) {
-        panic("unmap_page: unmapping unmapped page");
+        panic("unmap_page: unmapping an unmapped page");
     }
     void *tgt = (void *)PHYS_TO_VIRT(*pte_p & (~0xfff));
     kfree(tgt);
