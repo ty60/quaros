@@ -49,14 +49,17 @@ int uart_read_byte(void) {
 }
 
 
+extern int edit_len;
 int handle_uartintr(void) {
     int ret = uart_read_byte();
     // echo back input from keyboard
     // so it will be shown on the console
     if (ret == DEL) {
-        uart_write_byte('\b');
-        uart_write_byte(' ');
-        uart_write_byte('\b');
+        if (edit_len > 0) {
+            uart_write_byte('\b');
+            uart_write_byte(' ');
+            uart_write_byte('\b');
+        }
     } else {
         uart_write_byte(ret);
     }

@@ -26,7 +26,6 @@ sys.o: sys.asm
 
 .PHONY: clean
 clean:
-	rm -f $(progs) *.o
-
+	rm -f bin/* *.o
 
 -include *.d

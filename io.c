@@ -57,6 +57,8 @@ int printnum(int x) {
 
 
 #define MAX_BUF 4096
+// buf_len: Length of data that is commited to buffer.
+// edit_len: Length of data that is currently being edited and not commited to buffer.
 unsigned int buf_len, edit_len;
 unsigned int edit_i, write_i, read_i;
 int circular_buf[MAX_BUF];
