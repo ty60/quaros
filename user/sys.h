@@ -11,5 +11,6 @@ int close(int fd);
 int fork(void);
 int execv(const char *path, char *const argv[]);
 int exit(int status);
+int _wait(void);
 
 #endif

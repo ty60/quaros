@@ -11,6 +11,7 @@ section .text
 %define SYS_execv 4
 %define SYS_fork 5
 %define SYS_exit 6
+%define SYS_wait 7
 
 %macro sys 1
 global %1
@@ -23,7 +24,16 @@ global %1
 sys open
 sys read
 sys write
+sys close
 sys execv
 sys fork
 sys exit
-sys close
+
+; Since wait is an x86 instruction
+; it can't be used as an symbol name.
+; Use _wait instead.
+global _wait
+_wait:
+    mov eax, SYS_wait
+    int INT_SYS
+    ret

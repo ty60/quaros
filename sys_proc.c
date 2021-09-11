@@ -10,6 +10,9 @@
 #include "asm.h"
 
 
+extern struct task_struct *scheduler_task;
+
+
 int sys_fork(struct int_regs *frame) {
     struct task_struct *tp = alloc_task();
 
@@ -41,6 +44,9 @@ int sys_fork(struct int_regs *frame) {
 
     // Change state
     tp->state = RUNNABLE;
+
+    // Set parent
+    tp->parent = curr_task;
 
     // return child pid to parent
     return tp->pid;
@@ -143,7 +149,26 @@ int sys_exit(struct int_regs *frame) {
 
     zombie_exists = 1;
     curr_task->state = ZOMBIE;
+    wakeup_parent();
     switch_to(scheduler_task);
     panic("sys_exit: Should not return from scheduler");
     return 0;
+}
+
+
+int sys_wait(struct int_regs *frame) {
+    int i;
+    for (i = 0; i < MAX_TASKS; i++) {
+        if (tasks[i].parent != curr_task) {
+            continue;
+        }
+        if (tasks[i].state == ZOMBIE) {
+            return tasks[i].pid;
+        } else {
+            int pid = tasks[i].pid;
+            sleep();
+            return pid;
+        }
+    }
+    return -1;
 }

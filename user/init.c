@@ -6,11 +6,15 @@
 #define PARENT_MSG "Hello from parent!\n"
 #define EXEC_MSG "Execing child process\n"
 #define ERR_MSG "exec() failed\n"
+#define INIT_MSG "init calling sh\n"
 
 
 int main(void) {
     int fd = open("console", 0);
-    int pid;
+    // int pid;
+    puts(fd, INIT_MSG);
+    execv("sh", NULL);
+    /*
     pid = fork();
     if (pid > 0) {
         int wfd = open("test.txt", O_RDWR);
@@ -23,5 +27,6 @@ int main(void) {
         while (1) {
         }
     }
+    */
     return 0;
 }

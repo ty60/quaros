@@ -8,5 +8,6 @@
 int sys_fork(struct int_regs *frame);
 int sys_execv(struct int_regs *frame);
 int sys_exit(struct int_regs *frame);
+int sys_wait(struct int_regs *frame);
 
 #endif

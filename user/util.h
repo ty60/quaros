@@ -18,5 +18,6 @@ int print(int fd, const char *s);
 int puts(int fd, const char *s);
 int printnum(int fd, int x);
 int atoi(const char *s);
+int read_line(int fd, char *buf, int buf_size);
 
 #endif

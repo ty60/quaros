@@ -11,6 +11,7 @@ enum SYS_nums {
     SYS_execv,
     SYS_fork,
     SYS_exit,
+    SYS_wait,
 
     NUM_SYSCALL,
 };

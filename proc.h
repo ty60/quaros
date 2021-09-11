@@ -52,6 +52,7 @@ struct task_struct {
     pde_t *pgdir;
     void *kstack;
     struct file *open_files[MAX_OPEN_FILES];
+    struct task_struct *parent;
 };
 
 struct task_struct tasks[MAX_TASKS];
@@ -112,5 +113,7 @@ void build_int_frame(struct int_regs *int_regs_p, uint32_t entry);
 void register_task(struct task_struct *tp, const char *path);
 int load_elf(struct task_struct *task, Elf32_Ehdr *ehdr);
 void kill_zombies(void);
+void sleep(void);
+void wakeup_parent(void);
 
 #endif

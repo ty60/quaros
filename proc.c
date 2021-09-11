@@ -146,6 +146,7 @@ void destroy_task(struct task_struct *task) {
     task->pgdir = NULL;
     kfree(task->kstack);
     task->kstack = NULL;
+    task->parent = NULL;
     memset(task->open_files, 0, sizeof(task->open_files));
 }
 
@@ -159,7 +160,10 @@ void kill_zombies(void) {
     // TODO: Use zombie list or something.
     int i;
     for (i = 0; i < MAX_TASKS; i++) {
-        if (tasks[i].state != ZOMBIE) {
+        if (!(tasks[i].parent == curr_task && tasks[i].state == ZOMBIE)) {
+            continue;
+        }
+        if (curr_task->state == SLEEPING) {
             continue;
         }
         destroy_task(&tasks[i]);
@@ -223,4 +227,23 @@ void create_init_task(void) {
     struct task_struct *tp;
     tp = alloc_task();
     register_task(tp, "init");
+}
+
+
+void sleep(void) {
+    if (curr_task == scheduler_task) {
+        panic("sleep: Sleep scheduler");
+    }
+    curr_task->state = SLEEPING;
+    switch_to(scheduler_task);
+}
+
+
+void wakeup_parent(void) {
+    if (!curr_task->parent) {
+        panic("wakeup_parent: No parent to wakeup");
+    }
+    if (curr_task->parent->state == SLEEPING) {
+        curr_task->parent->state = RUNNABLE;
+    }
 }

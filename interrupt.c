@@ -54,6 +54,7 @@ void trampoline(struct int_regs *regs) {
     if (irq == T_IRQ_BASE + IRQ_SYSCALL) {
         int ret = handle_syscall(regs);
         regs->saved_regs.eax = ret;
+        kill_zombies();
     } else if (irq == T_IRQ_BASE + IRQ_TIMER) {
         ticks++;
         // eoi() has to be called before switch_to()
@@ -74,7 +75,6 @@ void trampoline(struct int_regs *regs) {
         print("\n");
         panic("Don't know how to handle it :)");
     }
-    kill_zombies();
     return; // to just before ret_to_int_site
 }
 
