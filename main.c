@@ -87,13 +87,13 @@ int main(void) {
     puts("Initialize tasks");
     init_tasks();
 
-    puts("Welcome to...");
-    show_banner();
-
     puts("Create init task");
     create_init_task();
 
-    puts("Become scheduler");
+    puts("Welcome to...");
+    show_banner();
+
+    // puts("Become scheduler");
     schedule();
 
     bored();
