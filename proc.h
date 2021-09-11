@@ -112,7 +112,7 @@ void build_context(struct context *context_p);
 void build_int_frame(struct int_regs *int_regs_p, uint32_t entry);
 void register_task(struct task_struct *tp, const char *path);
 int load_elf(struct task_struct *task, Elf32_Ehdr *ehdr);
-void kill_zombies(void);
+void kill_off_zombies(void);
 void sleep(void);
 void wakeup_parent(void);
 

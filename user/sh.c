@@ -60,12 +60,14 @@ int main(void) {
         if (pid == 0) {
             // child process
             execv(argv[0], argv);
-        } else {
-            // TODO: implement wait in kernel
-            int waited_for = _wait();
-            print(fd, "waited for pid: ");
-            printnum(fd, waited_for);
+            // execv won't return unless it has failed
+            print(fd, "execv failed: ");
+            print(fd, argv[0]);
             puts(fd, "");
+            exit(0);
+        } else {
+            // parent
+            int waited_for = _wait();
         }
     }
     exit(0);

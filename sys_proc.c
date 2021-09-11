@@ -78,7 +78,7 @@ static int prepare_ustack(pde_t *pgdir, uint32_t *espp, const char **argv) {
             break;
         }
         esp -= (len + 1);
-        memcpy_to_another_space(pgdir, esp, *argv++, len);
+        memcpy_to_another_space(pgdir, esp, *argv++, len + 1); // +1 to copy NULL byte
         argv_ps[argc++] = (char *)esp;
     }
 
@@ -116,11 +116,13 @@ int sys_execv(struct int_regs *frame) {
     struct file *fp = get_file(path);
     if (!fp) {
         destroy_address_space(curr_task->pgdir);
+        curr_task->pgdir = old_pgdir;
         return -1;
     }
     Elf32_Ehdr *ehdr = (Elf32_Ehdr *)(fp->data);
     if (load_elf(curr_task, ehdr) < 0) {
         destroy_address_space(curr_task->pgdir);
+        curr_task->pgdir = old_pgdir;
         return -1;
     }
 
@@ -128,6 +130,7 @@ int sys_execv(struct int_regs *frame) {
     frame->esp = PGSIZE - 8;
     if (prepare_ustack(curr_task->pgdir, &frame->esp, argv) < 0) {
         destroy_address_space(curr_task->pgdir);
+        curr_task->pgdir = old_pgdir;
         return -1;
     }
 
@@ -139,7 +142,6 @@ int sys_execv(struct int_regs *frame) {
 
 
 extern int zombie_exists;
-
 
 int sys_exit(struct int_regs *frame) {
     // TODO: Don't ignore exit code of user process.

@@ -152,7 +152,7 @@ void destroy_task(struct task_struct *task) {
 
 
 int zombie_exists = 0;
-void kill_zombies(void) {
+void kill_off_zombies(void) {
     if (!zombie_exists) {
         return;
     }

@@ -17,7 +17,7 @@ kernel_objs := start.o main.o memory.o util.o segment.o lapic.o uart.o io.o stri
 kernel_ld := kernel.ld
 kernel_elf := kernel.elf
 
-user_files := $(wildcard user/*.c) $(wildcard uesr/*.asm) banner.txt
+user_files := $(wildcard user/*.c) $(wildcard user/*.asm) $(wildcard user/root/*)
 fs := fs.elf
 
 all: $(image)
@@ -34,7 +34,7 @@ $(kernel_elf): $(kernel_objs) $(fs)
 
 $(fs): $(user_files)
 	make -C ./user
-	ar -r fs.a ./user/bin/* ./banner.txt
+	ar -r fs.a ./user/bin/* ./user/root/*
 	objcopy -I binary -O elf32-i386 -B i386 --rename-section .data=.fsar fs.a $@
 
 bootasm.o: bootasm.asm
