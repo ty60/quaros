@@ -122,6 +122,7 @@ struct file *alloc_file(const char *path) {
     strcpy(filesystem[i].name, path);
     filesystem[i].data = kmalloc();
     filesystem[i].in_use = 1;
+    filesystem[i].size = 0;
     return fp;
 }
 
@@ -135,6 +136,31 @@ void release_file(struct file *fp) {
         kfree(fp->data);
     }
     fp->in_use = 0;
+}
+
+
+int list_rootdir(char *buf) {
+    int i;
+    char *p = buf;
+    for (i = 0; i < MAX_FILES; i++) {
+        int len;
+        if (!(filesystem[i].in_use && filesystem[i].type == FT_REGULAR)) {
+            continue;
+        }
+        len = strlen(filesystem[i].name);
+        if (len == 0) {
+            // TODO:
+            // For some unknown reasons there are files with strlen(name) == 0
+            continue;
+        }
+        if ((p + len + 1) - buf > MAX_FILE_SIZE) {
+            return -1;
+        }
+        strcpy(p, filesystem[i].name);
+        p += len;
+        *p++ = '\n';
+    }
+    return p - buf;
 }
 
 

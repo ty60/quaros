@@ -8,6 +8,7 @@
 #include "util.h"
 #include "sys_file.h"
 
+
 extern struct file console_file;
 
 int sys_open(struct int_regs *int_frame) {
@@ -32,9 +33,17 @@ int sys_open(struct int_regs *int_frame) {
     struct file *fp = NULL;
     if (strcmp("console", path) == 0) {
         curr_task->open_files[fd] = &console_file;
-    } else if (strcmp("/", path) == 0) {
-        // TODO: List files
-        return -1;
+    } else if (strcmp("/", path) == 0 && !(fp = get_file(path))) {
+        // get_file("/") returned NULL.
+        // i.e., First time to list root directory.
+        // Allocate it.
+        if (!(fp = alloc_file(path))) {
+            return -1;
+        }
+        fp->type = FT_DIR;
+        if ((fp->size = list_rootdir(fp->data)) < 0) {
+            return -1;
+        }
     } else if (flags == O_RDONLY) { // Read regular file
         if (!(fp = get_file(path))) {
             return -1;
@@ -46,6 +55,7 @@ int sys_open(struct int_regs *int_frame) {
         } else if (!(fp = alloc_file(path))) {
             return -1;
         }
+        fp->type = FT_REGULAR;
     } else {
         return -1;
     }
@@ -79,9 +89,12 @@ int sys_read(struct int_regs *int_frame) {
         return read_console(buf, count);
     } else if (curr_task->open_files[fd]->type == FT_REGULAR) {
         return read_file(curr_task->open_files[fd], buf, count);
+    } else if (curr_task->open_files[fd]->type == FT_DIR) {
+        return read_file(curr_task->open_files[fd], buf, count);
     }
     return -1;
 }
+
 
 int sys_write(struct int_regs *int_frame) {
     uint32_t user_esp = int_frame->esp;
@@ -111,6 +124,9 @@ int sys_write(struct int_regs *int_frame) {
 
 
 int sys_close(struct int_regs *int_frame) {
+    // TODO: Think carefully about the implementation.
+    // I think there should be more things done in close
+    // but too lazy to consider about it.
     uint32_t user_esp = int_frame->esp;
     int fd;
     if (read_syscall_arg((void *)user_esp, 0, (uint32_t *)&fd) < 0) {

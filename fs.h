@@ -21,6 +21,7 @@ struct ar_hdr {
 enum file_type {
     FT_REGULAR,
     FT_DEV,
+    FT_DIR,
 };
 
 struct file {
@@ -44,6 +45,7 @@ struct file *alloc_file(const char *path);
 void release_file(struct file *fp);
 int read_file(struct file *file, char *buf, size_t count);
 int write_file(struct file *file, char *buf, size_t count);
+int list_rootdir(char *buf);
 
 
 #endif
