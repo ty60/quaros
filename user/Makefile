@@ -16,6 +16,7 @@ ulib_obj := sys.o util.o
 all: $(ulib_obj) $(progs) 
 
 %: %.o
+	mkdir -p bin
 	$(LD) $(LDFLAGS) -o bin/$@ $@.o $(ulib_obj)
 
 %.o: %.c

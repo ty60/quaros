@@ -1,9 +1,11 @@
-.ccls-cache
 *.img
 *.o
 *.elf
 *.d
-compile_commands.json
-cmd.gdb
 vectors.asm
 user/bin
+cmd.gdb
+fs.a
+
+compile_commands.json
+.ccls-cache
